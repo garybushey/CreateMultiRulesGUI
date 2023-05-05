@@ -2,6 +2,125 @@
   text-align: center;
 }
 
+.mainDiv {
+  width: 100%;
+  overflow-y: auto;
+  height: 70vh;
+}
+
+
+.sentineImageName {
+  width: 80%;
+  text-align: left;
+  margin-left: 10px;
+}
+
+.sentinelOverview {
+  display: flex;
+  overflow: hidden;
+  height: 100%;
+}
+
+.sentinelRow,
+.sentinelHeader {
+  display: flex;
+  height: 32px;
+  flex-grow: 1;
+}
+
+.sentinelRow:hover {
+  background-color: gainsboro;
+}
+
+.sentinelImage {
+  width: 16px;
+  padding: 2px;
+  margin-right: 3px;
+}
+
+.sentinelColumn {
+  width: 20%;
+  text-align: left;
+  border-bottom: 1px solid rgb(237, 235, 233);
+  margin-left: 3px;
+  overflow-x: clip;
+  text-overflow: ellipsis;
+  display: block;
+  word-break: break-word;
+  white-space: nowrap;
+}
+
+.sentinelColumnWithSubDivs {
+  display: flex;
+  width: 25%;
+  border-bottom: 1px solid rgb(237, 235, 233);
+  margin-left: 3px;
+  overflow-x: clip;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  white-space: nowrap;
+  vertical-align: middle;
+  margin-top: 2px;
+}
+
+.sentinelTable {
+  width: auto;
+  text-align: left;
+  font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.sentinelHeader {
+  font-weight: 600;
+  height: 40px;
+  text-align: left;
+}
+
+.panelDiv {
+  /*opacity: 1;
+  /*z-index: 10;*/
+  height: 100%;
+  width: 50%;
+  /*position: absolute;
+  right: 0px;
+  top: 0px; 
+  display: none;
+  /* visibility: hidden; */
+  background-color: red;
+  padding-bottom: 100%;
+  margin-bottom: -100%;
+}
+
+.ruleTypeImage {
+  height: 19px;
+  width: 19px;
+}
+
+.colorSeverityClassHigh {
+  width: 6px;
+  background-color: rgb(197, 15, 31);
+}
+
+.colorSeverityClassMedium {
+  width: 6px;
+  background-color: rgb(255, 170, 68);
+}
+
+.colorSeverityClassLow {
+  width: 6px;
+  background-color: rgb(252, 224, 0);
+}
+
+.colorSeverityClassInformational {
+  width: 6px;
+  background-color: rgb(194, 194, 194);
+}
+
+.profile-div {
+  border-bottom: 5px solid red;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -28,11 +147,8 @@
   color: #61dafb;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.dataGrid {
+  font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+  font-size: 13px; 
+  font-weight: 400;
 }
