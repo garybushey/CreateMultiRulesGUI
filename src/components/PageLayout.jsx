@@ -21,7 +21,7 @@ export const PageLayout = (props) => {
     <>
       <Navbar bg="primary" variant="dark" className="navbarStyle">
         <a className="navbar-brand" href="/">
-          Microsoft Sentinel
+          Create multiple Microsoft Sentinel rules from rule templates
         </a>
         <div className="collapse navbar-collapse justify-content-end">
           {isAuthenticated ? <SignOutButton /> : <SignInButton />}
@@ -31,7 +31,7 @@ export const PageLayout = (props) => {
       <br />
       <h5>
         <center>
-          Welcome to the Microsoft Sentinel Rules using Javascript Demo
+          Select one or more rule templates and then click on the "Create" button to create new rules
         </center>
       </h5>
       <br />

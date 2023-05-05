@@ -8,6 +8,19 @@
   height: 70vh;
 }
 
+.inUse {
+  color: black;
+  background-color: lightgray;
+  text-transform: uppercase;
+  border-radius: 2px;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 20px;
+  margin-right: 2px;
+  margin-left: 0px;
+  text-align: center;
+}
 
 .sentineImageName {
   width: 80%;
@@ -149,6 +162,6 @@
 
 .dataGrid {
   font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
-  font-size: 13px; 
+  font-size: 13px;
   font-weight: 400;
 }
