@@ -10,9 +10,14 @@ import {
   TableCellLayout,
   TableColumnDefinition,
   createTableColumn,
-  Tooltip
+  Tooltip,
+  Button
 } from "@fluentui/react-components";
+import {
+  Info16Regular
+} from "@fluentui/react-icons";
 import { makeStyles } from "@fluentui/react-components";
+import {techniqueDescriptions} from "./techniques"
 
 const useStyles = makeStyles({
   root: { color: "black" },
@@ -58,13 +63,14 @@ export const RulesTable = (props: any) => {
   };
 
   type Techniques = {
-    label: string;
+    label: JSX.Element;
   };
 
   type SourceName = {
     label: string;
   };
 
+  //This is a list of all the fields that make up an individual item
   type Item = {
     severity: Severity;
     status: Status;
@@ -78,6 +84,7 @@ export const RulesTable = (props: any) => {
     sourceName: SourceName;
   };
 
+  //Get the color that represents the severity
   function getSeverityColor(severity: string) {
     var sentinelColorSeverityClass: JSX.Element = <div></div>;
     switch (severity) {
@@ -99,6 +106,7 @@ export const RulesTable = (props: any) => {
     return sentinelColorSeverityClass;
   }
 
+  //Get the image that represents the rule types
   function getRuleImage(kind: string) {
     var kindImage: JSX.Element = <strong />;
     switch (kind) {
@@ -127,6 +135,7 @@ export const RulesTable = (props: any) => {
     return kindImage
   }
 
+  //Translate some of the rule type names
   function translateRuleType(kind: string) {
     var translatedRuleType: string = kind[0].toUpperCase() + kind.substring(1);
     switch (kind) {
@@ -145,18 +154,12 @@ export const RulesTable = (props: any) => {
     return translatedRuleType
   }
 
+  //This is a placeholder function that can be called when a rule is selected
   function switchBackground(data: any) {
     selectedRows = data;
-    /* var x: number=-1;
-    data.selectedItems.forEach((element: number) => {
-      x = element;
-    });
-    if (x !== -1)
-    {
-    //items[x].status.label="G";
-    } */
   }
 
+  //Determine what data source this rule template is coming from
   function getDataSource(source: any) {
     var dataSource: string = "Gallery"
     if (source !== undefined) {
@@ -168,6 +171,8 @@ export const RulesTable = (props: any) => {
     return dataSource
   }
 
+  //Check to see if this template is being used.  
+  //***NOT FINISHED */
   function isRuleTemplateInUse(row: any) {
     var inUse: string = "";
     if ((row.properties.alertRulesCreatedByTemplateCount !== undefined) && (row.properties.alertRulesCreatedByTemplateCount !== 0)) {
@@ -176,6 +181,7 @@ export const RulesTable = (props: any) => {
     return inUse;
   }
 
+  //Load the images used for tactics along with their name as a tooltip
   function getTacticsImages(tactics: any) {
     var returnValue: JSX.Element[] = [<strong />]
     if (tactics !== undefined) {
@@ -238,8 +244,30 @@ export const RulesTable = (props: any) => {
     return returnValue;
   }
 
-  const items: Item[] = [];
+  //Create a tooltip for all of the techniques being used
+  function loadTechniques(techniques: string) {
+    var returnValue: JSX.Element = <strong />
+    var techniquesCount: number = 0;
 
+    if (techniques !== undefined) {
+      returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}><span>{techniques[0]}</span></Tooltip></span>;
+      if (techniques.length > 1) {
+          techniquesCount = techniques.length-1;
+          var toolTipText:JSX.Element[]=[<strong/>];
+          for (var index:number=1; index<techniques.length; index++)
+          {
+            var techinqueText:string = techniques[index];
+               toolTipText.push(<span>{techinqueText}&nbsp;&nbsp;{techniqueDescriptions.data[techinqueText].description}<br/></span>);          }
+          returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}><span>{techniques[0]}</span></Tooltip>&nbsp;+{techniquesCount}<Tooltip content={toolTipText} relationship="label" {...props}><Button icon={<Info16Regular />} size="small" appearance="transparent"/></Tooltip></span>;
+      }
+      
+    }
+
+    return returnValue;
+  }
+
+  //Load the items array used to display the data
+  const items: Item[] = [];
   props.sentinelData.map((row: any, i: number) => {
     var thisSeverity = row.properties.severity;
     if (thisSeverity === undefined) {
@@ -254,12 +282,13 @@ export const RulesTable = (props: any) => {
       ruleType: { label: translateRuleType(row.kind), icon: getRuleImage(row.kind) },
       dataSources: { label: getDataSource(row.source) },
       tactics: { label: "", icon: getTacticsImages(row.properties.tactics) },
-      techniques: { label: "" },
+      techniques: { label: loadTechniques(row.properties.techniques) },
       sourceName: { label: "Gallery" },
     };
     items.push(item);
   });
 
+  //Define all the individual display columns
   const columns: TableColumnDefinition<Item>[] = [
     createTableColumn<Item>({
       columnId: "severity",
@@ -323,9 +352,9 @@ export const RulesTable = (props: any) => {
     }),
     createTableColumn<Item>({
       columnId: "tactics",
-      compare: (a, b) => {
-        return a.tactics.label.localeCompare(b.tactics.label);
-      },
+      // compare: (a, b) => {
+      //   return a.tactics.label.localeCompare(b.tactics.label);
+      // },
       renderHeaderCell: () => {
         return "Tactics";
       },
@@ -335,9 +364,9 @@ export const RulesTable = (props: any) => {
     }),
     createTableColumn<Item>({
       columnId: "techniques",
-      compare: (a, b) => {
+      /* compare: (a, b) => {
         return a.techniques.label.localeCompare(b.techniques.label);
-      },
+      } */
       renderHeaderCell: () => {
         return "Techniques";
       },
@@ -359,6 +388,7 @@ export const RulesTable = (props: any) => {
     }),
   ];
 
+  //Create the datagrid and return it
   return (
     <>
       <DataGrid
@@ -370,6 +400,7 @@ export const RulesTable = (props: any) => {
         onSelectionChange={(e, data) => switchBackground(data)}
         className={classes.root}
         resizableColumns
+        id="ruleTemplateGrid"
         columnSizingOptions={{
           severity: {
             minWidth: 70,
