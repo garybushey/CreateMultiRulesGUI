@@ -1,5 +1,4 @@
 import React from "react";
-import { RulesRow } from "./RulesRow";
 import {
   DataGridBody,
   DataGridRow,
@@ -17,14 +16,14 @@ import {
   Info16Regular
 } from "@fluentui/react-icons";
 import { makeStyles } from "@fluentui/react-components";
-import {techniqueDescriptions} from "./techniques"
+import { techniqueDescriptions } from "./techniques"
+import { sentinelRules, solutionTemplates } from "../sentinel";
 
 const useStyles = makeStyles({
   root: { color: "black" },
 });
 
 export const RulesTable = (props: any) => {
-  var selectedRows: any;
   const classes = useStyles();
 
   type ID = {
@@ -156,7 +155,7 @@ export const RulesTable = (props: any) => {
 
   //This is a placeholder function that can be called when a rule is selected
   function switchBackground(data: any) {
-    selectedRows = data;
+
   }
 
   //Determine what data source this rule template is coming from
@@ -175,8 +174,20 @@ export const RulesTable = (props: any) => {
   //***NOT FINISHED */
   function isRuleTemplateInUse(row: any) {
     var inUse: string = "";
+    //Check to see if this rule template has the "alertRulesCreatedByTemplateCount" field (Sentinel rule templates have this)
     if ((row.properties.alertRulesCreatedByTemplateCount !== undefined) && (row.properties.alertRulesCreatedByTemplateCount !== 0)) {
       inUse = "In Use";
+    }
+    //We didn't find the rule template being used.  Also check the "alertRulesCreatedByTemplateCount" field does not exist so that
+    //we don't check for this again (it could be that this field does exist but was set to zero)
+    if ((inUse === "") && (row.properties.alertRulesCreatedByTemplateCount === undefined)) {
+      //Check each rule individually to see if it is using a solution template
+      for (var index: number = 0; index < sentinelRules.length; index++) {
+        if ((sentinelRules[index].properties.alertRuleTemplateName !== undefined) && (row.templateName === sentinelRules[index].properties.alertRuleTemplateName)) {
+          inUse = "In Use";
+          break;
+        }
+      }
     }
     return inUse;
   }
@@ -235,7 +246,6 @@ export const RulesTable = (props: any) => {
           case "ResourceDevelopment":
             returnValue.push(<Tooltip content="Resource Development" relationship="label"><img src="data:image/svg+xml;base64,PHN2ZyBpZD0iZTc4NTdkN2QtYzEzYi00NmU1LWExYTAtZGMxZTc1NTliNGRhIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZmY3YTNmODctNjE1MC00YTE4LWFkOGMtOTJmZjQyOGUwMmMwIiB4MT0iMSIgeTE9IjIuOTIiIHgyPSI0LjYzIiB5Mj0iMi45MiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiM1ZWEwZjAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDA3OGQ0Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJiYzdjN2QwZS1iNWM2LTRmODktODIzMS1mMWRjYWRiM2EwNWUiIHgxPSIxMS4zOCIgeTE9IjIuOTIiIHgyPSIxNS4wMSIgeTI9IjIuOTIiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNWVhMGYwIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzAwNzhkNCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYThkNWNjMzUtZWVhMS00YzBhLWI2ZTAtNjkyNTY2ODk5OWY4IiB4MT0iMSIgeTE9IjEzLjE0IiB4Mj0iNC42MyIgeTI9IjEzLjE0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzVlYTBmMCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDc4ZDQiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImI1NzJjODliLTRjZTItNDUwZS04OTgyLTdkMTIzZGI3NjllNiIgeDE9IjExLjM5IiB5MT0iMTMuMTQiIHgyPSIxNS4wMSIgeTI9IjEzLjE0IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzVlYTBmMCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDc4ZDQiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxnPgogICAgPHBhdGggZD0iTTEuNDUsNC44M0EuNDUuNDUsMCwwLDEsMSw0LjM4SDFWMS40NUEuNDUuNDUsMCwwLDEsMS40NSwxSDQuMmEuNDUuNDUsMCwwLDEsMCwuOUgxLjlWNC4zOGEuNDUuNDUsMCwwLDEtLjQ1LjQ1WiIgZmlsbD0idXJsKCNmZjdhM2Y4Ny02MTUwLTRhMTgtYWQ4Yy05MmZmNDI4ZTAyYzApIi8+CiAgICA8cGF0aCBkPSJNMTQuNTYsNC44M2EuNDUuNDUsMCwwLDEtLjQ1LS40NVYxLjloLTIuM2EuNDUuNDUsMCwwLDEsMC0uOWgyLjc1YS40NS40NSwwLDAsMSwuNDUuNDVoMFY0LjM4YS40NS40NSwwLDAsMS0uNDUuNDVaIiBmaWxsPSJ1cmwoI2JjN2M3ZDBlLWI1YzYtNGY4OS04MjMxLWYxZGNhZGIzYTA1ZSkiLz4KICAgIDxwYXRoIGQ9Ik00LjIsMTUuMDVIMS40NUEuNDUuNDUsMCwwLDEsMSwxNC42SDFWMTEuNjdhLjQ1LjQ1LDAsMCwxLC45LDB2Mi40OEg0LjJhLjQ1LjQ1LDAsMCwxLC40My40N0EuNDUuNDUsMCwwLDEsNC4yLDE1LjA1WiIgZmlsbD0idXJsKCNhOGQ1Y2MzNS1lZWExLTRjMGEtYjZlMC02OTI1NjY4OTk5ZjgpIi8+CiAgICA8cGF0aCBkPSJNMTQuNTYsMTUuMDVIMTEuODJhLjQ1LjQ1LDAsMCwxLDAtLjloMi4yOVYxMS42N2EuNDUuNDUsMCwwLDEsLjQ3LS40My40NC40NCwwLDAsMSwuNDMuNDNWMTQuNmEuNDUuNDUsMCwwLDEtLjQ1LjQ1WiIgZmlsbD0idXJsKCNiNTcyYzg5Yi00Y2UyLTQ1MGUtODk4Mi03ZDEyM2RiNzY5ZTYpIi8+CiAgPC9nPgogIDxnPgogICAgPGc+CiAgICAgIDxwb2x5Z29uIHBvaW50cz0iNy44MiA4LjMgNy44MiAxMS40NiA1LjA5IDEzLjA0IDUuMDkgOS44OCA3LjgyIDguMyIgZmlsbD0iIzMyYmVkZCIvPgogICAgICA8cG9seWdvbiBwb2ludHM9IjcuODIgOC4zIDUuMDkgOS44OSAyLjM1IDguMyA1LjA5IDYuNzEgNy44MiA4LjMiIGZpbGw9IiM5Y2ViZmYiLz4KICAgICAgPHBvbHlnb24gcG9pbnRzPSI1LjA5IDkuODkgNS4wOSAxMy4wNCAyLjM1IDExLjQ2IDIuMzUgOC4zIDUuMDkgOS44OSIgZmlsbD0iIzUwZTZmZiIvPgogICAgICA8cG9seWdvbiBwb2ludHM9IjIuMzUgMTEuNDYgNS4wOSA5Ljg4IDUuMDkgMTMuMDQgMi4zNSAxMS40NiIgZmlsbD0iIzljZWJmZiIvPgogICAgICA8cG9seWdvbiBwb2ludHM9IjcuODIgMTEuNDYgNS4wOSA5Ljg4IDUuMDkgMTMuMDQgNy44MiAxMS40NiIgZmlsbD0iIzUwZTZmZiIvPgogICAgPC9nPgogICAgPGc+CiAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTMuNDkgOC41NiAxMy40OSAxMS43MiAxMC43NiAxMy4zIDEwLjc2IDEwLjE0IDEzLjQ5IDguNTYiIGZpbGw9IiMzMmJlZGQiLz4KICAgICAgPHBvbHlnb24gcG9pbnRzPSIxMy40OSA4LjU2IDEwLjc2IDEwLjE0IDguMDMgOC41NSAxMC43NiA2Ljk3IDEzLjQ5IDguNTYiIGZpbGw9IiM5Y2ViZmYiLz4KICAgICAgPHBvbHlnb24gcG9pbnRzPSIxMC43NiAxMC4xNCAxMC43NiAxMy4zIDguMDMgMTEuNzIgOC4wMyA4LjU1IDEwLjc2IDEwLjE0IiBmaWxsPSIjNTBlNmZmIi8+CiAgICAgIDxwb2x5Z29uIHBvaW50cz0iOC4wMyAxMS43MiAxMC43NiAxMC4xNCAxMC43NiAxMy4zIDguMDMgMTEuNzIiIGZpbGw9IiM5Y2ViZmYiLz4KICAgICAgPHBvbHlnb24gcG9pbnRzPSIxMy40OSAxMS43MiAxMC43NiAxMC4xNCAxMC43NiAxMy4zIDEzLjQ5IDExLjcyIiBmaWxsPSIjNTBlNmZmIi8+CiAgICA8L2c+CiAgICA8Zz4KICAgICAgPHBvbHlnb24gcG9pbnRzPSIxMC44OCAzLjUzIDEwLjg4IDYuNjkgOC4xNSA4LjI4IDguMTUgNS4xMSAxMC44OCAzLjUzIiBmaWxsPSIjMzJiZWRkIi8+CiAgICAgIDxwb2x5Z29uIHBvaW50cz0iMTAuODggMy41MyA4LjE1IDUuMTIgNS40MiAzLjUzIDguMTUgMS45NCAxMC44OCAzLjUzIiBmaWxsPSIjOWNlYmZmIi8+CiAgICAgIDxwb2x5Z29uIHBvaW50cz0iOC4xNSA1LjEyIDguMTUgOC4yOCA1LjQyIDYuNjkgNS40MiAzLjUzIDguMTUgNS4xMiIgZmlsbD0iIzUwZTZmZiIvPgogICAgICA8cG9seWdvbiBwb2ludHM9IjUuNDIgNi42OSA4LjE1IDUuMTEgOC4xNSA4LjI4IDUuNDIgNi42OSIgZmlsbD0iIzljZWJmZiIvPgogICAgICA8cG9seWdvbiBwb2ludHM9IjEwLjg4IDYuNjkgOC4xNSA1LjExIDguMTUgOC4yOCAxMC44OCA2LjY5IiBmaWxsPSIjNTBlNmZmIi8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K" alt=""></img></Tooltip>);
             break;
-
           default:
             break;
         }
@@ -252,22 +262,24 @@ export const RulesTable = (props: any) => {
     if (techniques !== undefined) {
       returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}><span>{techniques[0]}</span></Tooltip></span>;
       if (techniques.length > 1) {
-          techniquesCount = techniques.length-1;
-          var toolTipText:JSX.Element[]=[<strong/>];
-          for (var index:number=1; index<techniques.length; index++)
-          {
-            var techinqueText:string = techniques[index];
-               toolTipText.push(<span>{techinqueText}&nbsp;&nbsp;{techniqueDescriptions.data[techinqueText].description}<br/></span>);          }
-          returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}><span>{techniques[0]}</span></Tooltip>&nbsp;+{techniquesCount}<Tooltip content={toolTipText} relationship="label" {...props}><Button icon={<Info16Regular />} size="small" appearance="transparent"/></Tooltip></span>;
+        techniquesCount = techniques.length - 1;
+        var toolTipText: JSX.Element[] = [<strong />];
+        for (var index: number = 1; index < techniques.length; index++) {
+          var techinqueText: string = techniques[index];
+          toolTipText.push(<span>{techinqueText}&nbsp;-&nbsp;{techniqueDescriptions.data[techinqueText].description}<br /></span>);
+        }
+        returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}>
+          <span>{techniques[0]}</span></Tooltip>&nbsp;+{techniquesCount}<Tooltip content={toolTipText} relationship="label" {...props}>
+            <Button icon={<Info16Regular />} size="small" appearance="transparent" /></Tooltip></span>;
       }
-      
+
     }
 
     return returnValue;
   }
 
-  //Load the items array used to display the data
-  const items: Item[] = [];
+  //Load the ruleTemplates array used to display the data
+  const ruleTemplates: Item[] = [];
   props.sentinelData.map((row: any, i: number) => {
     var thisSeverity = row.properties.severity;
     if (thisSeverity === undefined) {
@@ -285,7 +297,9 @@ export const RulesTable = (props: any) => {
       techniques: { label: loadTechniques(row.properties.techniques) },
       sourceName: { label: "Gallery" },
     };
-    items.push(item);
+    ruleTemplates.push(item);
+
+    return null;   //Just to get rid of a warning
   });
 
   //Define all the individual display columns
@@ -392,7 +406,7 @@ export const RulesTable = (props: any) => {
   return (
     <>
       <DataGrid
-        items={items}
+        items={ruleTemplates}
         columns={columns}
         sortable
         selectionMode="multiselect"

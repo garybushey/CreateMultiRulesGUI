@@ -140,19 +140,19 @@ export async function callSentinelRulesApi(accessToken:string) {
     solutionTemplates,
     standaloneSolutionTemplates,
   ] = await Promise.all([
-    fetch(rulesURL.url, options)
+    fetch(rulesURL.url, options)              //Load the rules
       .then((response) => response.json())
       .then((response) => response.value)
       .catch((error) => console.log(error)),
-    fetch(ruleTemplatesURL.url, options)
+    fetch(ruleTemplatesURL.url, options)      //Load the Sentinel Rule Templates
       .then((response) => response.json())
       .then((response) => response.value)
       .catch((error) => console.log(error)),
-    fetch(solutionTemplatesURL.url, postOptions)
+    fetch(solutionTemplatesURL.url, postOptions)  //Load the Soltions Rule Templates
       .then((response) => response.json())
       .then((response) => response.data)
       .catch((error) => console.log(error)),
-    fetch(standaloneSolutionTemplatesURL.url, options)
+    fetch(standaloneSolutionTemplatesURL.url, options)   //Load the stand-alone solution rule templates
       .then((response) => response.json())
       .then((response) => response.value)
       .catch((error) => console.log(error)),
