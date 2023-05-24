@@ -34,6 +34,23 @@
   height: 100%;
 }
 
+.floatLeft {
+  width: 2000px;
+  float: left;
+  overflow: scroll;
+  height: 860px;
+}
+
+.floatRight {
+  margin-left: 20px;
+  border-width: 2px;
+  border-left:rgb(194, 194, 194);
+  padding-bottom: 100%;
+  margin-bottom: -100%;
+  height: 100%;
+  width: 50%;
+}
+
 .sentinelRow,
 .sentinelHeader {
   display: flex;
@@ -82,12 +99,18 @@
   font-family: "Segoe UI", "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
   font-size: 13px;
   font-weight: 400;
+  border-bottom: none !important;
+  border-bottom-width: 0px;;
 }
 
 .sentinelHeader {
   font-weight: 600;
   height: 40px;
   text-align: left;
+}
+
+.fontsize14 {
+  font-size: 14px;
 }
 
 .panelDiv {
@@ -108,6 +131,11 @@
 .ruleTypeImage {
   height: 19px;
   width: 19px;
+}
+
+.textLeft {
+  text-align: left;
+  border-bottom:none;
 }
 
 

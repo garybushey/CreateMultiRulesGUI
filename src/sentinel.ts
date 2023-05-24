@@ -166,7 +166,7 @@ export async function callSentinelRulesApi(accessToken:string) {
 }
 
 type solutionTemplate = {
-  templateName:string;
+  name:string;
   kind:string;
   properties:string;
   source:string;
@@ -176,11 +176,12 @@ function AddSolutions()
 {
   for (var index = 0; index < solutionTemplates.length; index++) {
     var singleSolution:any =  solutionTemplates[index].properties.template.resources[0];
+    singleSolution.properties.version = solutionTemplates[index].properties.template.resources[1].properties.version
     var newTemplate: solutionTemplate = {
-      templateName : singleSolution.name,
+      name : singleSolution.name,
       kind : singleSolution.kind,
       properties : singleSolution.properties,
-      source: solutionTemplates[index].properties.template.resources[1].properties.source
+      source: solutionTemplates[index].properties.template.resources[1].properties.source,
     }
     sentinelTemplates.push(newTemplate);
     

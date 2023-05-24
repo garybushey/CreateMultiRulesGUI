@@ -17,14 +17,19 @@ import {
 } from "@fluentui/react-icons";
 import { makeStyles } from "@fluentui/react-components";
 import { techniqueDescriptions } from "./techniques"
-import { sentinelRules, solutionTemplates } from "../sentinel";
+import { sentinelRules } from "../sentinel";
+import { RulesDetails } from "./RulesDetails";
 
 const useStyles = makeStyles({
   root: { color: "black" },
 });
 
+
 export const RulesTable = (props: any) => {
   const classes = useStyles();
+  var selectedRuleTemplates: string[]; //An array of those items that have been selected.
+
+  const [selectedRule, setSelectedRule] = React.useState();
 
   type ID = {
     label: string
@@ -70,7 +75,7 @@ export const RulesTable = (props: any) => {
   };
 
   //This is a list of all the fields that make up an individual item
-  type Item = {
+  type RuleTemplateItem = {
     severity: Severity;
     status: Status;
     id: ID;
@@ -154,8 +159,11 @@ export const RulesTable = (props: any) => {
   }
 
   //This is a placeholder function that can be called when a rule is selected
-  function switchBackground(data: any) {
-
+  function updateSelectedRuleTemplates(data: any) {
+    selectedRuleTemplates = data.selectedItems;
+    var tmp: any = typeof Array.from(data.selectedItems).pop() === 'number' ? Array.from(data.selectedItems).pop() : undefined;
+    setSelectedRule(ruleTemplatesAllData[tmp]);
+    var x = "";
   }
 
   //Determine what data source this rule template is coming from
@@ -171,7 +179,6 @@ export const RulesTable = (props: any) => {
   }
 
   //Check to see if this template is being used.  
-  //***NOT FINISHED */
   function isRuleTemplateInUse(row: any) {
     var inUse: string = "";
     //Check to see if this rule template has the "alertRulesCreatedByTemplateCount" field (Sentinel rule templates have this)
@@ -196,7 +203,8 @@ export const RulesTable = (props: any) => {
   function getTacticsImages(tactics: any) {
     var returnValue: JSX.Element[] = [<strong />]
     if (tactics !== undefined) {
-      for (var index: number = 0; index < tactics.length; index++) {
+      //Always show the first 4 tactics as images
+      for (var index: number = 0; ((index < tactics.length) && (index < 4)); index++) {
         switch (tactics[index]) {
           case "Collection":
             returnValue.push(<Tooltip content="Collection" relationship="label"><img src="data:image/svg+xml;base64,PHN2ZyBpZD0iNWU0MGM5YTctY2Y4NS00NjRiLTgyNjctNzliMmZkYTcwNmEyIiAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiAgd2lkdGg9IjE5IiBoZWlnaHQ9IjE5IiB2aWV3Qm94PSIwIDAgMTkgMTkiPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSI3YTA1ZTBkNC01ZWNlLTRjNDItYWU4Yi0wYzAwZjkxNTNjMTQiIHgxPSItMjA5LjI3MSIgeTE9IjM3LjEzMiIgeDI9Ii0yMDkuNjQ0IiB5Mj0iMjIuMjY1IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEsIDAsIDAsIC0xLCAyMTksIDQxLjUpIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzMyZDRmNSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjIyOCIgc3RvcC1jb2xvcj0iIzMxZDBmMSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjQ2MyIgc3RvcC1jb2xvcj0iIzJjYzNlNiIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjcwMyIgc3RvcC1jb2xvcj0iIzI1YWZkNCIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjk0NCIgc3RvcC1jb2xvcj0iIzFjOTJiYSIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTk4YWIzIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPGc+CiAgICA8cGF0aCBkPSJNMTIuNzYzLDUuMjE0bC4zMjItMy4yMjhhLjExNS4xMTUsMCwwLDAtLjE5MS0uMWwtLjk3OS44MDYtLjA1Mi4wNDNDMTAuMTExLjYwOCw3LjIyNC0uNTc1LDUuMTYzLDEuMTIzYTcuMTU4LDcuMTU4LDAsMCwxLDUuMTgsMi44NjVMMTAuMzI5LDRsLS45OC44MDdhLjExNS4xMTUsMCwwLDAsLjA2LjIwNmwzLjIzLjNBLjEyOS4xMjksMCwwLDAsMTIuNzYzLDUuMjE0WiIgZmlsbD0iI2VlYWE0NSIgLz4KICAgIDxwYXRoIGQ9Ik0xNy4xNzMsNi44ODdoLTcuMDJhLjM2NS4zNjUsMCwwLDEtLjItLjA2OUw3LjkzNSw1LjQ4N2EuNC40LDAsMCwwLS4yLS4wNjhoLTUuOWEuMzczLjM3MywwLDAsMC0uMzgxLjM4NFYxOC4zYS4zODEuMzgxLDAsMCwwLC4zODEuMzg0SDE3LjE3M2EuMzgyLjM4MiwwLDAsMCwuMzgxLS4zODRWNy4yNzFBLjQuNCwwLDAsMCwxNy4xNzMsNi44ODdaIiBmaWxsPSIjMDA1YmExIiAvPgogICAgPHBhdGggZD0iTTYuNDEyLDYuODg3SDMuMDY1YS4xNTMuMTUzLDAsMCwxLS4xNS0uMTUxVjYuM2EuMTUzLjE1MywwLDAsMSwuMTUtLjE1MUg2LjQxMmEuMTUyLjE1MiwwLDAsMSwuMTQ5LjE1MXYuNDI1QS4xNDcuMTQ3LDAsMCwxLDYuNDEyLDYuODg3WiIgZmlsbD0iI2ZmZiIgLz4KICAgIDxwYXRoIGQ9Ik0zLjU0MSw2Ljg4N0gzLjAyNGEuMTA4LjEwOCwwLDAsMS0uMTA5LS4xMVY2LjI1NmEuMTA4LjEwOCwwLDAsMSwuMTA5LS4xMWguNTE3YS4xMDcuMTA3LDAsMCwxLC4xMDkuMTF2LjUyMUMzLjYzNyw2LjgzMiwzLjYsNi44ODcsMy41NDEsNi44ODdaIiBmaWxsPSIjMWFjM2YyIiAvPgogICAgPHBhdGggZD0iTTE3LjE3Myw2Ljg3M0g5LjQ1OWEuNDI5LjQyOSwwLDAsMC0uMjcyLjExTDcuOTQ5LDguMjMxYS4zNzYuMzc2LDAsMCwxLS4yNzIuMTFIMS44MjdhLjM4Mi4zODIsMCwwLDAtLjM4MS4zODR2OS41NjNhLjM4Mi4zODIsMCwwLDAsLjM4MS4zODVIMTcuMTczYS4zODIuMzgyLDAsMCwwLC4zODEtLjM4NVY3LjI1N0EuMzkxLjM5MSwwLDAsMCwxNy4xNzMsNi44NzNaIiBmaWxsPSJ1cmwoIzdhMDVlMGQ0LTVlY2UtNGM0Mi1hZThiLTBjMDBmOTE1M2MxNCkiIC8+CiAgPC9nPgo8L3N2Zz4=" alt=""></img></Tooltip>);
@@ -250,6 +258,11 @@ export const RulesTable = (props: any) => {
             break;
         }
       }
+      if (tactics.length > 4) {
+        var extraNumber = tactics.length - 4;
+        var additionalText: JSX.Element = <span className="fontsize14">&nbsp;+{extraNumber}<Button icon={<Info16Regular />} size="small" appearance="transparent" /></span>
+        returnValue.push(additionalText);
+      }
     }
     return returnValue;
   }
@@ -279,13 +292,14 @@ export const RulesTable = (props: any) => {
   }
 
   //Load the ruleTemplates array used to display the data
-  const ruleTemplates: Item[] = [];
+  const ruleTemplates: RuleTemplateItem[] = [];
+  const ruleTemplatesAllData:any[] = [];
   props.sentinelData.map((row: any, i: number) => {
     var thisSeverity = row.properties.severity;
     if (thisSeverity === undefined) {
       thisSeverity = "High";
     }
-    var item: Item = {
+    var item: RuleTemplateItem = {
       id: { label: row.name },
       severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
       status: { label: "" },
@@ -298,13 +312,19 @@ export const RulesTable = (props: any) => {
       sourceName: { label: "Gallery" },
     };
     ruleTemplates.push(item);
+    ruleTemplatesAllData.push(row);
 
     return null;   //Just to get rid of a warning
   });
 
+  //DOES NOTHING RIGHT NOW
+  function createSelectedRules() {
+    for (var index: number = 0; index < selectedRuleTemplates.length; index++) { }
+  }
+
   //Define all the individual display columns
-  const columns: TableColumnDefinition<Item>[] = [
-    createTableColumn<Item>({
+  const columns: TableColumnDefinition<RuleTemplateItem>[] = [
+    createTableColumn<RuleTemplateItem>({
       columnId: "severity",
       compare: (a, b) => {
         return a.severity.label.localeCompare(b.severity.label);
@@ -316,7 +336,7 @@ export const RulesTable = (props: any) => {
         return <TableCellLayout media={item.severity.icon}>{item.severity.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
       columnId: "inuse",
       compare: (a, b) => {
         return a.inUse.label.localeCompare(b.inUse.label);
@@ -328,7 +348,7 @@ export const RulesTable = (props: any) => {
         return <TableCellLayout className="inUse">{item.inUse.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
       columnId: "name",
       compare: (a, b) => {
         return a.name.label.localeCompare(b.name.label);
@@ -340,7 +360,7 @@ export const RulesTable = (props: any) => {
         return <TableCellLayout truncate>{item.name.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
       columnId: "ruleType",
       compare: (a, b) => {
         return a.ruleType.label.localeCompare(b.ruleType.label);
@@ -352,7 +372,7 @@ export const RulesTable = (props: any) => {
         return <TableCellLayout media={item.ruleType.icon}>{item.ruleType.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
       columnId: "dataSources",
       compare: (a, b) => {
         return a.dataSources.label.localeCompare(b.dataSources.label);
@@ -364,7 +384,7 @@ export const RulesTable = (props: any) => {
         return <TableCellLayout truncate>{item.dataSources.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
       columnId: "tactics",
       // compare: (a, b) => {
       //   return a.tactics.label.localeCompare(b.tactics.label);
@@ -373,10 +393,10 @@ export const RulesTable = (props: any) => {
         return "Tactics";
       },
       renderCell: (item) => {
-        return <TableCellLayout media={item.tactics.icon}>{item.tactics.label}</TableCellLayout>;
+        return <TableCellLayout media={item.tactics.icon} truncate>{item.tactics.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
       columnId: "techniques",
       /* compare: (a, b) => {
         return a.techniques.label.localeCompare(b.techniques.label);
@@ -388,7 +408,19 @@ export const RulesTable = (props: any) => {
         return <TableCellLayout>{item.techniques.label}</TableCellLayout>;
       },
     }),
-    createTableColumn<Item>({
+    createTableColumn<RuleTemplateItem>({
+      columnId: "viewInfo",
+      compare: (a, b) => {
+        return a.status.label.localeCompare(b.status.label);
+      },
+      renderHeaderCell: () => {
+        return "View Info";
+      },
+      renderCell: (item) => {
+        return <TableCellLayout> <span id="showDialogspan">show info</span></TableCellLayout>;
+      },
+    }),
+    createTableColumn<RuleTemplateItem>({
       columnId: "status",
       compare: (a, b) => {
         return a.status.label.localeCompare(b.status.label);
@@ -405,48 +437,61 @@ export const RulesTable = (props: any) => {
   //Create the datagrid and return it
   return (
     <>
-      <DataGrid
-        items={ruleTemplates}
-        columns={columns}
-        sortable
-        selectionMode="multiselect"
-        getRowId={(item) => item.id.label}
-        onSelectionChange={(e, data) => switchBackground(data)}
-        className={classes.root}
-        resizableColumns
-        id="ruleTemplateGrid"
-        columnSizingOptions={{
-          severity: {
-            minWidth: 70,
-            defaultWidth: 80
-          },
-          inuse: {
-            minWidth: 70,
-            defaultWidth: 80,
-          },
-          name: {
-            minWidth: 100,
-            defaultWidth: 400
-          }
-        }}
-      >
-        <DataGridHeader>
-          <DataGridRow selectionCell={{ "aria-label": "Select all rows" }}>
-            {({ renderHeaderCell }) => (
-              <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
-            )}
-          </DataGridRow>
-        </DataGridHeader>
-        <DataGridBody<Item>>
-          {({ item, rowId }) => (
-            <DataGridRow<Item> key={rowId} selectionCell={{ "aria-label": "Select row" }} >
-              {({ renderCell }) => (
-                <DataGridCell>{renderCell(item)}</DataGridCell>
+      <div className="sentinelOverview">
+        <div className="floatLeft">
+          <Button {...props} onClick={createSelectedRules} appearance="primary">Click Me</Button>
+          <DataGrid
+            items={ruleTemplates}
+            columns={columns}
+            sortable
+            selectionMode="multiselect"
+            getRowId={(item) => item.rowId}
+            onSelectionChange={(e, data) => updateSelectedRuleTemplates(data)}
+            className={classes.root}
+            resizableColumns
+            id="ruleTemplateGrid"
+            columnSizingOptions={{
+              tactics: {
+                minWidth: 150,
+                defaultWidth: 400
+              },
+              severity: {
+                minWidth: 70,
+                defaultWidth: 80
+              },
+              inuse: {
+                minWidth: 70,
+                defaultWidth: 80,
+              },
+              name: {
+                minWidth: 100,
+                defaultWidth: 400
+              }
+            }}
+          >
+            <DataGridHeader>
+              <DataGridRow >
+                {({ renderHeaderCell }) => (
+                  <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                )}
+              </DataGridRow>
+            </DataGridHeader>
+            <DataGridBody<RuleTemplateItem>>
+              {({ item, rowId }) => (
+                <DataGridRow<RuleTemplateItem> key={rowId}  >
+                  {({ renderCell }) => (
+                    <DataGridCell>{renderCell(item)}</DataGridCell>
+                  )}
+                </DataGridRow>
               )}
-            </DataGridRow>
-          )}
-        </DataGridBody>
-      </DataGrid>
+            </DataGridBody>
+          </DataGrid>
+        </div>
+        <div className="floatRight"> {selectedRule ? (<RulesDetails selectedRow={selectedRule} />) : (
+          <RulesDetails selectedRow="" />
+        )}
+        </div>
+      </div>
     </>
   );
 };

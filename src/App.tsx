@@ -18,6 +18,7 @@ const ProfileContent = () => {
     const { instance, accounts } = useMsal();
     const [sentinelData, setSentinelData] = useState(null);
 
+    //Load all the rules 
     function GetRules() {
         //  acquires an access token which is then attached to a request for Sentinel REST API data
         instance
@@ -32,44 +33,39 @@ const ProfileContent = () => {
 
     return (
         <>
-            <h5 className="card-title">Welcome {accounts[0].name}</h5>
-            <br />
-            {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
-                <Button variant="secondary" onClick={GetRules}>
-                    Get Rules
-                </Button>
-            )}
+           
+                    {/* If the "sentinelData" variable has data shows the RulesTable component}
+                     otherwise load the button to load the rules */}
+                    {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
+                        <Button variant="secondary" onClick={GetRules}>
+                            Get Rules
+                        </Button>
+                    )}
+                
         </>
     );
 };
 
-/**
-* If a user is authenticated the ProfileContent component above is rendered. Otherwise a message indicating a user is not authenticated is rendered.
-*/
-const MainContent = () => {
-    return (
-        <div className="App">
-            <AuthenticatedTemplate>
-                <ProfileContent />
-            </AuthenticatedTemplate>
-
-            <UnauthenticatedTemplate>
-                <h5>
-                    <center>
-                        Please sign-in to get your rules.
-                    </center>
-                </h5>
-            </UnauthenticatedTemplate>
-        </div>
-    );
-};
-
+// Show the login infomation if not already logged in, otherwise show the logged in page.
 export default function App() {
     return (
         <PageLayout>
             <center>
-                <MainContent />
+                <div className="App">
+                    <AuthenticatedTemplate>
+                        <ProfileContent />
+                    </AuthenticatedTemplate>
+
+                    <UnauthenticatedTemplate>
+                        <h5>
+                            <center>
+                                Please sign-in to get your rules.   
+                            </center>
+                        </h5>
+                    </UnauthenticatedTemplate>
+                </div>
             </center>
         </PageLayout>
     );
 }
+
