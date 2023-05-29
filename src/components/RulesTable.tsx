@@ -73,6 +73,9 @@ export const RulesTable = (props: any) => {
   type SourceName = {
     label: string;
   };
+  type RequiredDataConnectors = {
+    label: string[];
+  }
 
   //This is a list of all the fields that make up an individual item
   type RuleTemplateItem = {
@@ -86,6 +89,7 @@ export const RulesTable = (props: any) => {
     tactics: Tactics;
     techniques: Techniques;
     sourceName: SourceName;
+    requiredDataConnectors: RequiredDataConnectors;
   };
 
   //Get the color that represents the severity
@@ -163,7 +167,6 @@ export const RulesTable = (props: any) => {
     selectedRuleTemplates = data.selectedItems;
     var tmp: any = typeof Array.from(data.selectedItems).pop() === 'number' ? Array.from(data.selectedItems).pop() : undefined;
     setSelectedRule(ruleTemplatesAllData[tmp]);
-    var x = "";
   }
 
   //Determine what data source this rule template is coming from
@@ -293,33 +296,40 @@ export const RulesTable = (props: any) => {
 
   //Load the ruleTemplates array used to display the data
   const ruleTemplates: RuleTemplateItem[] = [];
-  const ruleTemplatesAllData:any[] = [];
+  const ruleTemplatesAllData: any[] = [];
   props.sentinelData.map((row: any, i: number) => {
     var thisSeverity = row.properties.severity;
     if (thisSeverity === undefined) {
       thisSeverity = "High";
     }
-    var item: RuleTemplateItem = {
-      id: { label: row.name },
-      severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
-      status: { label: "" },
-      inUse: { label: isRuleTemplateInUse(row) },
-      name: { label: row.properties.displayName },
-      ruleType: { label: translateRuleType(row.kind), icon: getRuleImage(row.kind) },
-      dataSources: { label: getDataSource(row.source) },
-      tactics: { label: "", icon: getTacticsImages(row.properties.tactics) },
-      techniques: { label: loadTechniques(row.properties.techniques) },
-      sourceName: { label: "Gallery" },
-    };
-    ruleTemplates.push(item);
-    ruleTemplatesAllData.push(row);
+    if (
+      row.kind === "Scheduled" ||
+      row.kind === "MicrosoftSecurityIncidentCreation" ||
+      row.kind === "NRT"
+    ) {
+      var item: RuleTemplateItem = {
+        id: { label: row.name },
+        severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
+        status: { label: "" },
+        inUse: { label: isRuleTemplateInUse(row) },
+        name: { label: row.properties.displayName },
+        ruleType: { label: translateRuleType(row.kind), icon: getRuleImage(row.kind) },
+        dataSources: { label: getDataSource(row.source) },
+        tactics: { label: "", icon: getTacticsImages(row.properties.tactics) },
+        techniques: { label: loadTechniques(row.properties.techniques) },
+        sourceName: { label: "Gallery" },
+        requiredDataConnectors: { label: row.properties.requiredDataConnectors}
+      };
+      ruleTemplates.push(item);
+      ruleTemplatesAllData.push(row);
+    }
 
     return null;   //Just to get rid of a warning
   });
 
   //DOES NOTHING RIGHT NOW
   function createSelectedRules() {
-    for (var index: number = 0; index < selectedRuleTemplates.length; index++) { }
+    //for (var index: number = 0; index < selectedRuleTemplates.length; index++) { }
   }
 
   //Define all the individual display columns
