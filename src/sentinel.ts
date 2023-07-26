@@ -1,10 +1,9 @@
 const subscriptionID: string = "9790d913-b5da-460d-b167-ac985d5f3b83";
-const resourceGroupName: string = "azuresentinel";
-const workspaceName: string = "gabazuresentinel";
+const resourceGroupName: string = "gabtest9";
+const workspaceName: string = "gabtest9";
+var globalAccessToken = "";
 
-// const subscriptionID:string = "d1d8779d-38d7-4f06-91db-9cbc8de0176f";
-// const resourceGroupName:string = "soc";
-// const workspaceName:string = "CyberSecuritySOC";
+const apiVersion = "?api-version=2023-04-01-preview";
 
 // Setup the baseline used for most of the MS Sentinel AP calls
 const urlBase: string =
@@ -16,57 +15,19 @@ const urlBase: string =
   workspaceName +
   "/providers/Microsoft.SecurityInsights/";
 
-// Setup the query to get the Solutions (hoping this will convert into a Sentinel call soon)
-const solutionsQuery: string =
-  "Resources " +
-  "| where type =~ 'Microsoft.Resources/templateSpecs/versions' " +
-  "| where tags['hidden-sentinelContentType'] =~ 'AnalyticsRule' " +
-  "and tags['hidden-sentinelWorkspaceId'] =~ '/subscriptions/" +
-  subscriptionID +
-  "/resourceGroups/" +
-  resourceGroupName +
-  "/providers/Microsoft.OperationalInsights/workspaces/" +
-  workspaceName +
-  "'" +
-  "| extend version = name " +
-  "| extend parsed_version = parse_version(version) " +
-  "| extend resources = parse_json(parse_json(parse_json(properties).template).resources) " +
-  "| extend metadata = parse_json(resources[array_length(resources)-1].properties) " +
-  "| extend contentId=tostring(metadata.contentId) " +
-  "| summarize arg_max(parsed_version, version, properties) by contentId " +
-  "| project contentId, version, properties";
-
-//Create the body needed for the call to get teh solutions
-var solutionQueryBody: any = {};
-solutionQueryBody["subscription"] = subscriptionID;
-solutionQueryBody["query"] = solutionsQuery;
-
 //Create the API call to get the Sentinel Analytics rules
-const rulesURL = {
-  url: urlBase + "alertrules?api-version=2023-03-01-preview",
-};
-
-//Create the API call to get the Sentinel Rules templates
-const ruleTemplatesURL = {
-  url: urlBase + "alertruletemplates?api-version=2023-03-01-preview",
-};
-
-//Create the API call to get the Sentinel Solution based rule templates
-const solutionTemplatesURL = {
-  body: solutionQueryBody,
-  url: "https://management.azure.com/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01",
-};
-
-//Create the API call to get the Sentinel standalone rule templates (part of Content Hub)
-const standaloneSolutionTemplatesURL = {
-  url: urlBase + "contenttemplates?api-version=2022-11-01-preview",
-};
+const rulesURL = urlBase + "alertrules" + apiVersion;
+const createRuleURL = urlBase + "alertrules";
+const solutionTemplatesURL =
+  urlBase +
+  "contentTemplates" +
+  apiVersion +
+  "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')";
+const metaRuleURL = urlBase + "metadata/analyticsrule-";
 
 //Export the variables that will store the results from the various rule calls
-export var sentinelRules: any,
-  sentinelTemplates: any,
-  solutionTemplates: any,
-  standaloneSolutionTemplates: any = "";
+export var solutionTemplates: any;
+var solutionRules: any;
 
 //Create the Authentication header needed to make the REST API GET calls
 function getGetAuthHeader(accessToken: string) {
@@ -79,166 +40,148 @@ function getGetAuthHeader(accessToken: string) {
   return options;
 }
 
-//Create the Authentication header needed to make the REST API PUT calls
-function getPostAuthHeader(accessToken: string, body: string) {
+//Create the Authentication header needed to make the REST API PUT calls.  Need to
+//determine how to update the accessToken if it has expired.
+function getPostAuthHeader(accessToken: string, body: any, method: string) {
   const headers = new Headers();
   headers.append("Authorization", `Bearer ${accessToken}`);
-  headers.append("Accept", "applicaiton/json");
+  headers.append("Access-Control-Allow-Origin", "*");
+  headers.append("Accept", "application/json");
   headers.append("Content-Type", "application/json");
   const options = {
-    method: "POST",
+    method: method,
     headers: headers,
-    body: JSON.stringify(body),
+    body: body,
   };
   return options;
 }
 
-//Check to see where the template came from (not complete)
-function checkGallery(sentinelRules: any, solutionTemplates: any) {
-  for (var index = 0; index < sentinelRules.length; index++) {
-    if (sentinelRules[index].properties.templateVersion == null) {
-      if (sentinelRules[index].kind === "Fusion") {
-        sentinelRules[index].source = "Gallery";
-      } else {
-        sentinelRules[index].source = "Custom";
-      }
-    } else {
-      var alertRuleTemplateName =
-        sentinelRules[index].properties.alertRuleTemplateName;
-      if (findName(solutionTemplates, alertRuleTemplateName)) {
-        sentinelRules[index].source = "Solution";
-      } else {
-        sentinelRules[index].source = "Gallery";
-      }
-    }
+//Create a rule from the passed in rule templates.  Can create more than one rule at a time.
+export async function createRuleFromTemplate(ruleTemplates: any) {
+  for (var index: number = 0; index < ruleTemplates.length; index++) {
+    var body: string = "{";
+    var ruleData: any = ruleTemplates[index];
+
+    //Load the information needed for the Metadata call
+    var packageId = ruleData.properties.packageId;
+    var version = ruleData.properties.version;
+    var author =
+      ruleData.properties.mainTemplate.resources[1].properties.author;
+    var support =
+      ruleData.properties.mainTemplate.resources[1].properties.support;
+    var source =
+      ruleData.properties.mainTemplate.resources[1].properties.source;
+    var type = ruleData.properties.mainTemplate.resources[0].kind;
+
+    //Load the properties for the rule creation
+    var properties = ruleData.properties.mainTemplate.resources[0].properties;
+    //Enabled seems to be set to false for all the templates
+    properties.enabled = "true";
+    //These properties are needed so that the rule template knows it has been used
+    properties.alertRuleTemplateName =
+      ruleData.properties.mainTemplate.resources[0].name;
+    properties.templateVersion = version;
+
+    //Create the rule
+    body += '"kind": "' + type + '", ';
+    body += '"properties":';
+    //Need to use JSON.stringify on any javascript objects so that they can
+    //be used in the REST API
+    body += JSON.stringify(properties);
+    body += "}";
+    var guid = generateGUID();
+    var url = createRuleURL + "/" + guid + apiVersion;
+    //var putResponse: any;
+    var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
+    //NEED TO USE THE POSTRESPONSE VARIABLE TO UPDATE THE UI
+    var postResponse = await Promise.all([
+      fetch(url, postOptions) //Load the Solutions Rule Templates
+        .then((response) => response.json())
+        .catch((error) => console.log("Error" + error)),
+    ]);
+
+    //Now that the rule has been created, create the metadata entry so that the
+    //correct Source Name shows up.
+    var metaURL = metaRuleURL + postResponse[0].name;
+    var id = metaURL.substring(28);
+    //This uses a different API version than the Sentinel calls
+    metaURL += "?api-version=2022-01-01-preview";
+    var metaBody: string = "{";
+    metaBody += '"apiVersion":"2022-01-01-preview",';
+    metaBody += '"name":"analyticsrule-' + postResponse[0].name + '",';
+    metaBody +=
+      '"type":"Microsoft.OperationalInsights/workspaces/providers/metadata",';
+    metaBody += '"id":"' + id + '",';
+    metaBody += '"properties" :{';
+    metaBody += '"contentId":"' + postResponse[0].name + '",';
+    metaBody += '"parentId":"' + postResponse[0].id + '",';
+    metaBody += '"kind":"AnalyticsRule",';
+    metaBody += '"version":"' + version + '",';
+    metaBody += '"source":' + JSON.stringify(source) + ",";
+    metaBody += '"author":' + JSON.stringify(author) + ",";
+    metaBody += '"support":' + JSON.stringify(support) + "";
+    metaBody += "}";
+
+    //var putResponse: any;
+    var metaOptions = getPostAuthHeader(globalAccessToken, metaBody, "PUT");
+    var metaResponse = await Promise.all([
+      fetch(metaURL, metaOptions) //Load the Solutions Rule Templates
+        .then((response) => response.json())
+        .catch((error) => console.log("Error" + error)),
+    ]);
   }
-  return sentinelRules;
 }
 
-//Find the name of the rule in the array of all the rules
-function findName(theArray: any, nameToFind: string) {
-  var i = theArray.length;
-  while (i--) {
-    if (theArray[i].contentId === nameToFind) {
-      return true;
+//Create a new GUID
+function generateGUID() {
+  var uuidValue = "",
+    k,
+    randomValue;
+  for (k = 0; k < 32; k++) {
+    randomValue = (Math.random() * 16) | 0;
+
+    if (k === 8 || k === 12 || k === 16 || k === 20) {
+      uuidValue += "-";
     }
+    uuidValue += (
+      k === 12 ? 4 : k === 16 ? (randomValue & 3) | 8 : randomValue
+    ).toString(16);
   }
-  return false;
+  return uuidValue;
 }
 
 //Make a call to all the Sentinel REST APIs, store the results in the appropriate
 //variables, and then make the call to add the location that the template came from
 export async function callSentinelRulesApi(accessToken: string) {
   var options = getGetAuthHeader(accessToken);
-  var postOptions = getPostAuthHeader(accessToken, solutionTemplatesURL.body);
 
-  [
-    sentinelRules,
-    sentinelTemplates,
-    solutionTemplates,
-    standaloneSolutionTemplates,
-  ] = await Promise.all([
-    fetch(rulesURL.url, options) //Load the rules
+  globalAccessToken = accessToken;
+
+  [solutionRules, solutionTemplates] = await Promise.all([
+    fetch(rulesURL, options) //Load the rules to see if a rule template has been used
       .then((response) => response.json())
       .then((response) => response.value)
       .catch((error) => console.log(error)),
-    fetch(ruleTemplatesURL.url, options) //Load the Sentinel Rule Templates
-      .then((response) => response.json())
-      .then((response) => response.value)
-      .catch((error) => console.log(error)),
-    fetch(solutionTemplatesURL.url, postOptions) //Load the Soltions Rule Templates
-      .then((response) => response.json())
-      .then((response) => response.data)
-      .catch((error) => console.log(error)),
-    fetch(standaloneSolutionTemplatesURL.url, options) //Load the stand-alone solution rule templates
+    fetch(solutionTemplatesURL, options) //Load the Solutions Rule Templates
       .then((response) => response.json())
       .then((response) => response.value)
       .catch((error) => console.log(error)),
   ]);
 
-  sentinelRules = checkGallery(sentinelRules, solutionTemplates);
-  AddSolutions();
-
-  //return sentinelRules;
-  return sentinelTemplates;
+  isRuleTemplateInUse(solutionTemplates);
+  return solutionTemplates;
 }
 
-type solutionTemplate = {
-  name: string;
-  kind: string;
-  properties: string;
-  source: string;
-};
-
-function AddSolutions() {
-  for (var index = 0; index < solutionTemplates.length; index++) {
-    var singleSolution: any =
-      solutionTemplates[index].properties.template.resources[0];
-    singleSolution.properties.version =
-      solutionTemplates[
-        index
-      ].properties.template.resources[1].properties.version;
-    if (
-      singleSolution.kind === "Scheduled" ||
-      singleSolution.kind === "MicrosoftSecurityIncidentCreation" ||
-      singleSolution.kind === "NRT"
-    ) {
-      var newTemplate: solutionTemplate = {
-        name: singleSolution.name,
-        kind: singleSolution.kind,
-        properties: singleSolution.properties,
-        source:
-          solutionTemplates[index].properties.template.resources[1].properties
-            .source,
-      };
-      sentinelTemplates.push(newTemplate);
-    }
-  }
-}
-
-//Find the rule template for the passed in rule.  Check Sentinel's
-//OOTB rules first, then Solutions, and then stand-alone solutions.
-function findRuleTemplate(alertRuleTemplateName: string) {
-  var foundTemplate = "";
-
-  //Check to see if the rule belongs to a Sentinel template, a solution template,
-  //or a stand-alone solution
-  if (alertRuleTemplateName !== "") {
-    //Check Sentinel templates first
-    for (var index1 = 0; index1 < sentinelTemplates.length; index1++) {
-      if (alertRuleTemplateName === sentinelTemplates[index1].name) {
-        foundTemplate = sentinelTemplates[index1];
-        break;
-      }
-    }
-    //If we did not find the rule in the Sentinel templates, check the solution templates
-    if (foundTemplate === "") {
-      for (var index2 = 0; index2 < solutionTemplates.length; index2++) {
-        if (alertRuleTemplateName === solutionTemplates[index2].contentId) {
-          foundTemplate =
-            solutionTemplates[index2].properties.template.resources[0];
-          break;
-        }
-      }
-    }
-    //If we still have not found the rule's template, check stand-alone solutions
-    if (foundTemplate === "") {
-      for (
-        var index3 = 0;
-        index3 < standaloneSolutionTemplates.length;
-        index3++
-      ) {
-        if (
-          alertRuleTemplateName ===
-          standaloneSolutionTemplates[index3].contentId
-        ) {
-          foundTemplate =
-            standaloneSolutionTemplates[index3].properties.template
-              .resources[0];
+//Check to see if this template is being used.
+function isRuleTemplateInUse(solutionTemplates: any) {
+  for (var index: number = 0; index < solutionRules.length; index++) {
+    if (solutionRules[index].properties.alertRuleTemplateName !== undefined) {
+      for ( var index1: number = 0; index1 < solutionTemplates.length;index1++) {
+        if (solutionTemplates[index1].properties.contentId === solutionRules[index].properties.alertRuleTemplateName) {
+          solutionTemplates[index1].inUse = "In Use";
           break;
         }
       }
     }
   }
-  return foundTemplate;
 }

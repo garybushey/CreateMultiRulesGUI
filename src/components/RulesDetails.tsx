@@ -71,7 +71,6 @@ function generateEventGroupingText(eventGrouping: string) {
 
 
 export const RulesDetails = (props: any) => {
-  const [dataConnectorHTML, setDataConnectorHTML] = useState([]);
   const classes = useStyles();
 
   var ruleTemplate: any = props.selectedRow
@@ -114,7 +113,14 @@ export const RulesDetails = (props: any) => {
   }
   
   const  showDataSources = (requiredDataConnectors: requiredDataConnectorType[]) => {
+    if (requiredDataConnectors !== undefined)
+    {
     return requiredDataConnectors.map( dataConnector => <TableRow><TableCell className={classes.displayCell}>{dataConnector.connectorId}{showDataTables(dataConnector.dataTypes)}</TableCell></TableRow>)
+    }
+    else
+    {
+      return <></>
+    }
   }
 
   const showDataTables = (dataTables:string[]) => {

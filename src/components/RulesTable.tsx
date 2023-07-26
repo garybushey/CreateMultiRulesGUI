@@ -17,7 +17,7 @@ import {
 } from "@fluentui/react-icons";
 import { makeStyles } from "@fluentui/react-components";
 import { techniqueDescriptions } from "./techniques"
-import { sentinelRules } from "../sentinel";
+import { createRuleFromTemplate } from "../sentinel";
 import { RulesDetails } from "./RulesDetails";
 
 const useStyles = makeStyles({
@@ -27,8 +27,7 @@ const useStyles = makeStyles({
 
 export const RulesTable = (props: any) => {
   const classes = useStyles();
-  var selectedRuleTemplates: string[]; //An array of those items that have been selected.
-
+  const [selectedRuleTemplates, setSelectedRuleTemplates] = React.useState([]); //An array of those items that have been selected.
   const [selectedRule, setSelectedRule] = React.useState();
 
   type ID = {
@@ -73,9 +72,15 @@ export const RulesTable = (props: any) => {
   type SourceName = {
     label: string;
   };
+
   type RequiredDataConnectors = {
     label: string[];
   }
+
+  type Version = {
+    label: string;
+  }
+
 
   //This is a list of all the fields that make up an individual item
   type RuleTemplateItem = {
@@ -90,6 +95,7 @@ export const RulesTable = (props: any) => {
     techniques: Techniques;
     sourceName: SourceName;
     requiredDataConnectors: RequiredDataConnectors;
+    version: Version
   };
 
   //Get the color that represents the severity
@@ -162,44 +168,12 @@ export const RulesTable = (props: any) => {
     return translatedRuleType
   }
 
-  //This is a placeholder function that can be called when a rule is selected
+  //Set the selected rules into a variable that can be passed to other calls
   function updateSelectedRuleTemplates(data: any) {
-    selectedRuleTemplates = data.selectedItems;
+    setSelectedRuleTemplates(data.selectedItems);
+    //Get the last added entry in the selectedItems list.
     var tmp: any = typeof Array.from(data.selectedItems).pop() === 'number' ? Array.from(data.selectedItems).pop() : undefined;
     setSelectedRule(ruleTemplatesAllData[tmp]);
-  }
-
-  //Determine what data source this rule template is coming from
-  function getDataSource(source: any) {
-    var dataSource: string = "Gallery"
-    if (source !== undefined) {
-      dataSource = source.name;
-      if (dataSource !== "SAP") {
-        dataSource = dataSource.replace(/([A-Z])/g, ' $1').trim()
-      }
-    }
-    return dataSource
-  }
-
-  //Check to see if this template is being used.  
-  function isRuleTemplateInUse(row: any) {
-    var inUse: string = "";
-    //Check to see if this rule template has the "alertRulesCreatedByTemplateCount" field (Sentinel rule templates have this)
-    if ((row.properties.alertRulesCreatedByTemplateCount !== undefined) && (row.properties.alertRulesCreatedByTemplateCount !== 0)) {
-      inUse = "In Use";
-    }
-    //We didn't find the rule template being used.  Also check the "alertRulesCreatedByTemplateCount" field does not exist so that
-    //we don't check for this again (it could be that this field does exist but was set to zero)
-    if ((inUse === "") && (row.properties.alertRulesCreatedByTemplateCount === undefined)) {
-      //Check each rule individually to see if it is using a solution template
-      for (var index: number = 0; index < sentinelRules.length; index++) {
-        if ((sentinelRules[index].properties.alertRuleTemplateName !== undefined) && (row.templateName === sentinelRules[index].properties.alertRuleTemplateName)) {
-          inUse = "In Use";
-          break;
-        }
-      }
-    }
-    return inUse;
   }
 
   //Load the images used for tactics along with their name as a tooltip
@@ -276,18 +250,23 @@ export const RulesTable = (props: any) => {
     var techniquesCount: number = 0;
 
     if (techniques !== undefined) {
-      returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}><span>{techniques[0]}</span></Tooltip></span>;
-      if (techniques.length > 1) {
-        techniquesCount = techniques.length - 1;
-        var toolTipText: JSX.Element[] = [<strong />];
-        for (var index: number = 1; index < techniques.length; index++) {
-          var techinqueText: string = techniques[index];
-          toolTipText.push(<span>{techinqueText}&nbsp;-&nbsp;{techniqueDescriptions.data[techinqueText].description}<br /></span>);
+      try {
+        returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}><span>{techniques[0]}</span></Tooltip></span>;
+        if (techniques.length > 1) {
+          techniquesCount = techniques.length - 1;
+          var toolTipText: JSX.Element[] = [<strong />];
+          for (var index: number = 1; index < techniques.length; index++) {
+            var techinqueText: string = techniques[index];
+            toolTipText.push(<span>{techinqueText}&nbsp;-&nbsp;{techniqueDescriptions.data[techinqueText].description}<br /></span>);
+          }
+          returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}>
+            <span>{techniques[0]}</span></Tooltip>&nbsp;+{techniquesCount}<Tooltip content={toolTipText} relationship="label" {...props}>
+              <Button icon={<Info16Regular />} size="small" appearance="transparent" /></Tooltip></span>;
         }
-        returnValue = <span><Tooltip content={techniqueDescriptions.data[techniques[0]].description} relationship="label" {...props}>
-          <span>{techniques[0]}</span></Tooltip>&nbsp;+{techniquesCount}<Tooltip content={toolTipText} relationship="label" {...props}>
-            <Button icon={<Info16Regular />} size="small" appearance="transparent" /></Tooltip></span>;
       }
+      catch {
+      }
+
 
     }
 
@@ -298,30 +277,35 @@ export const RulesTable = (props: any) => {
   const ruleTemplates: RuleTemplateItem[] = [];
   const ruleTemplatesAllData: any[] = [];
   props.sentinelData.map((row: any, i: number) => {
-    var thisSeverity = row.properties.severity;
+    var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
+    var thisRow: any = row.properties.mainTemplate.resources[0];
+    var thisSeverity = thisProperties.severity;
+    var thisInUse = row.inUse;
     if (thisSeverity === undefined) {
       thisSeverity = "High";
     }
     if (
-      row.kind === "Scheduled" ||
-      row.kind === "MicrosoftSecurityIncidentCreation" ||
-      row.kind === "NRT"
+      thisRow.kind === "Scheduled" ||
+      thisRow.kind === "MicrosoftSecurityIncidentCreation" ||
+      thisRow.kind === "NRT"
     ) {
       var item: RuleTemplateItem = {
-        id: { label: row.name },
+        id: { label: thisRow.name },
         severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
         status: { label: "" },
-        inUse: { label: isRuleTemplateInUse(row) },
-        name: { label: row.properties.displayName },
-        ruleType: { label: translateRuleType(row.kind), icon: getRuleImage(row.kind) },
-        dataSources: { label: getDataSource(row.source) },
-        tactics: { label: "", icon: getTacticsImages(row.properties.tactics) },
-        techniques: { label: loadTechniques(row.properties.techniques) },
+        inUse: { label: thisInUse},
+        name: { label: thisProperties.displayName },
+        ruleType: { label: translateRuleType(thisRow.kind), icon: getRuleImage(thisRow.kind) },
+        dataSources: { label: row.properties.mainTemplate.resources[1].properties.source.name },
+        tactics: { label: "", icon: getTacticsImages(thisProperties.tactics) },
+        techniques: { label: loadTechniques(thisProperties.techniques) },
         sourceName: { label: "Gallery" },
-        requiredDataConnectors: { label: row.properties.requiredDataConnectors}
+        requiredDataConnectors: { label: thisProperties.requiredDataConnectors },
+        version: { label: row.properties.version }
       };
+      thisRow.properties.version = row.properties.version;
       ruleTemplates.push(item);
-      ruleTemplatesAllData.push(row);
+      ruleTemplatesAllData.push(thisRow);
     }
 
     return null;   //Just to get rid of a warning
@@ -329,7 +313,14 @@ export const RulesTable = (props: any) => {
 
   //DOES NOTHING RIGHT NOW
   function createSelectedRules() {
-    //for (var index: number = 0; index < selectedRuleTemplates.length; index++) { }
+    var rulesToCreate: any[] = [];
+    if (selectedRuleTemplates !== undefined) {
+      selectedRuleTemplates.forEach((element) => {
+        console.log(element);
+        rulesToCreate.push(props.sentinelData[element]);
+      });
+      createRuleFromTemplate(rulesToCreate);
+    }
   }
 
   //Define all the individual display columns
