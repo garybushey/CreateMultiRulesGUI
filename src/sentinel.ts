@@ -93,8 +93,7 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
     var url = createRuleURL + "/" + guid + apiVersion;
     //var putResponse: any;
     var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
-    //NEED TO USE THE POSTRESPONSE VARIABLE TO UPDATE THE UI
-    var postResponse = await Promise.all([
+    /* var postResponse = await Promise.all([
       fetch(url, postOptions) //Load the Solutions Rule Templates
         .then((response) => response.json())
         .catch((error) => console.log("Error" + error)),
@@ -128,7 +127,7 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
       fetch(metaURL, metaOptions) //Load the Solutions Rule Templates
         .then((response) => response.json())
         .catch((error) => console.log("Error" + error)),
-    ]);
+    ]); */
   }
 }
 
@@ -176,8 +175,15 @@ export async function callSentinelRulesApi(accessToken: string) {
 function isRuleTemplateInUse(solutionTemplates: any) {
   for (var index: number = 0; index < solutionRules.length; index++) {
     if (solutionRules[index].properties.alertRuleTemplateName !== undefined) {
-      for ( var index1: number = 0; index1 < solutionTemplates.length;index1++) {
-        if (solutionTemplates[index1].properties.contentId === solutionRules[index].properties.alertRuleTemplateName) {
+      for (
+        var index1: number = 0;
+        index1 < solutionTemplates.length;
+        index1++
+      ) {
+        if (
+          solutionTemplates[index1].properties.contentId ===
+          solutionRules[index].properties.alertRuleTemplateName
+        ) {
           solutionTemplates[index1].inUse = "In Use";
           break;
         }

@@ -10,12 +10,10 @@ import {
   TableColumnDefinition,
   createTableColumn,
   Tooltip,
-  Button
+  Button,
+  makeStyles
 } from "@fluentui/react-components";
-import {
-  Info16Regular
-} from "@fluentui/react-icons";
-import { makeStyles } from "@fluentui/react-components";
+import { Info16Regular} from "@fluentui/react-icons";
 import { techniqueDescriptions } from "./techniques"
 import { createRuleFromTemplate } from "../sentinel";
 import { RulesDetails } from "./RulesDetails";
@@ -28,7 +26,7 @@ const useStyles = makeStyles({
 export const RulesTable = (props: any) => {
   const classes = useStyles();
   const [selectedRuleTemplates, setSelectedRuleTemplates] = React.useState([]); //An array of those items that have been selected.
-  const [selectedRule, setSelectedRule] = React.useState();
+  const [selectedRule] = React.useState();
 
   type ID = {
     label: string
@@ -172,8 +170,7 @@ export const RulesTable = (props: any) => {
   function updateSelectedRuleTemplates(data: any) {
     setSelectedRuleTemplates(data.selectedItems);
     //Get the last added entry in the selectedItems list.
-    var tmp: any = typeof Array.from(data.selectedItems).pop() === 'number' ? Array.from(data.selectedItems).pop() : undefined;
-    setSelectedRule(ruleTemplatesAllData[tmp]);
+    //var tmp: any = typeof Array.from(data.selectedItems).pop() === 'number' ? Array.from(data.selectedItems).pop() : undefined;
   }
 
   //Load the images used for tactics along with their name as a tooltip
@@ -274,7 +271,7 @@ export const RulesTable = (props: any) => {
   }
 
   //Load the ruleTemplates array used to display the data
-  const ruleTemplates: RuleTemplateItem[] = [];
+  var ruleTemplates: RuleTemplateItem[] = [];
   const ruleTemplatesAllData: any[] = [];
   props.sentinelData.map((row: any, i: number) => {
     var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
@@ -311,13 +308,12 @@ export const RulesTable = (props: any) => {
     return null;   //Just to get rid of a warning
   });
 
-  //DOES NOTHING RIGHT NOW
   function createSelectedRules() {
     var rulesToCreate: any[] = [];
     if (selectedRuleTemplates !== undefined) {
       selectedRuleTemplates.forEach((element) => {
-        console.log(element);
         rulesToCreate.push(props.sentinelData[element]);
+        ruleTemplates[element].status.label="Gary Test";
       });
       createRuleFromTemplate(rulesToCreate);
     }
@@ -440,7 +436,7 @@ export const RulesTable = (props: any) => {
     <>
       <div className="sentinelOverview">
         <div className="floatLeft">
-          <Button {...props} onClick={createSelectedRules} appearance="primary">Click Me</Button>
+          <Button {...props} onClick={createSelectedRules} appearance="primary">Create Rule(s)</Button>
           <DataGrid
             items={ruleTemplates}
             columns={columns}

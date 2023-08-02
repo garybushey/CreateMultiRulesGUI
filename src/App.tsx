@@ -38,7 +38,7 @@ const ProfileContent = () => {
                      otherwise load the button to load the rules */}
                     {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
                         <Button variant="secondary" onClick={GetRules}>
-                            Get Rules
+                            Load Rule Templates
                         </Button>
                     )}
                 
