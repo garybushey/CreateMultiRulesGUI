@@ -73,7 +73,7 @@ export const RulesDetails = (props: any) => {
   const classes = useStyles();
 
   var ruleTemplate: any = props.selectedRow
-  var displayName: string = "";
+  var displayName: string = " ";
   var description: string = "";
   var ruleQuery: string = "";
   var rulePeriod: string = "";
