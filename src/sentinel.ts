@@ -1,28 +1,17 @@
 const subscriptionID: string = "9790d913-b5da-460d-b167-ac985d5f3b83";
-const resourceGroupName: string = "gabtest9";
-const workspaceName: string = "gabtest9";
+const resourceGroupName: string = "azuresentinel";
+const workspaceName: string = "gabazuresentinel";
 var globalAccessToken = "";
 
 const apiVersion = "?api-version=2023-04-01-preview";
 
 // Setup the baseline used for most of the MS Sentinel AP calls
-const urlBase: string =
-  "https://management.azure.com/subscriptions/" +
-  subscriptionID +
-  "/resourceGroups/" +
-  resourceGroupName +
-  "/providers/Microsoft.OperationalInsights/workspaces/" +
-  workspaceName +
-  "/providers/Microsoft.SecurityInsights/";
+const urlBase: string = "https://management.azure.com/subscriptions/" + subscriptionID + "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.OperationalInsights/workspaces/" + workspaceName + "/providers/Microsoft.SecurityInsights/";
 
 //Create the API call to get the Sentinel Analytics rules
 const rulesURL = urlBase + "alertrules" + apiVersion;
 const createRuleURL = urlBase + "alertrules";
-const solutionTemplatesURL =
-  urlBase +
-  "contentTemplates" +
-  apiVersion +
-  "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')";
+const solutionTemplatesURL = urlBase + "contentTemplates" + apiVersion + "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')";
 const metaRuleURL = urlBase + "metadata/analyticsrule-";
 
 //Export the variables that will store the results from the various rule calls
@@ -65,12 +54,9 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
     //Load the information needed for the Metadata call
     var packageId = ruleData.properties.packageId;
     var version = ruleData.properties.version;
-    var author =
-      ruleData.properties.mainTemplate.resources[1].properties.author;
-    var support =
-      ruleData.properties.mainTemplate.resources[1].properties.support;
-    var source =
-      ruleData.properties.mainTemplate.resources[1].properties.source;
+    var author = ruleData.properties.mainTemplate.resources[1].properties.author;
+    var support = ruleData.properties.mainTemplate.resources[1].properties.support;
+    var source = ruleData.properties.mainTemplate.resources[1].properties.source;
     var type = ruleData.properties.mainTemplate.resources[0].kind;
 
     //Load the properties for the rule creation
@@ -78,8 +64,7 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
     //Enabled seems to be set to false for all the templates
     properties.enabled = "true";
     //These properties are needed so that the rule template knows it has been used
-    properties.alertRuleTemplateName =
-      ruleData.properties.mainTemplate.resources[0].name;
+    properties.alertRuleTemplateName = ruleData.properties.mainTemplate.resources[0].name;
     properties.templateVersion = version;
 
     //Create the rule
@@ -132,21 +117,11 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
 }
 
 //Create a new GUID
-function generateGUID() {
-  var uuidValue = "",
-    k,
-    randomValue;
-  for (k = 0; k < 32; k++) {
-    randomValue = (Math.random() * 16) | 0;
-
-    if (k === 8 || k === 12 || k === 16 || k === 20) {
-      uuidValue += "-";
-    }
-    uuidValue += (
-      k === 12 ? 4 : k === 16 ? (randomValue & 3) | 8 : randomValue
-    ).toString(16);
-  }
-  return uuidValue;
+function generateGUID():string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }
 
 //Make a call to all the Sentinel REST APIs, store the results in the appropriate

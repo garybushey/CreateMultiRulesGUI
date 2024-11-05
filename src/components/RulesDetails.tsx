@@ -89,21 +89,22 @@ export const RulesDetails = (props: any) => {
   var requiredDataConnectors: requiredDataConnectorType[] = [];
 
   if (ruleTemplate !== '') {
-    displayName = ruleTemplate.properties.displayName;
-    description = ruleTemplate.properties.description;
-    ruleQuery = ruleTemplate.properties.query;
-    ruleFrequency = ruleTemplate.properties.queryFrequency;
-    rulePeriod = ruleTemplate.properties.queryPeriod;
-    triggerThreshold = ruleTemplate.properties.triggerThreshold;
-    triggerOperator = ruleTemplate.properties.triggerOperator;
+    var tmpProperties = ruleTemplate.properties.mainTemplate.resources[0].properties;
+    displayName = tmpProperties.displayName;
+    description = tmpProperties.description;
+    ruleQuery = tmpProperties.query;
+    ruleFrequency = tmpProperties.queryFrequency;
+    rulePeriod = tmpProperties.queryPeriod;
+    triggerThreshold = tmpProperties.triggerThreshold;
+    triggerOperator = tmpProperties.triggerOperator;
     if (ruleTemplate.properties.eventGroupingSettings !== undefined) {
       eventGrouping = ruleTemplate.properties.eventGroupingSettings.aggregationKind;
     }
     suppressionEnabled = "Not configured";
     createIncidents = "Enabled";
     alertGrouping = "Disabled";
-    version = ruleTemplate.properties.version;
-    requiredDataConnectors = ruleTemplate.properties.requiredDataConnectors;
+    version = tmpProperties.version;
+    requiredDataConnectors = tmpProperties.requiredDataConnectors;
   }
 
 

@@ -9,7 +9,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 export const SignOutButton = () => {
   const { instance } = useMsal();
 
-  const handleLogout = (logoutType) => {
+  const handleLogout = (logoutType: string) => {
     if (logoutType === "popup") {
       instance.logoutPopup({
         postLogoutRedirectUri: "/",
