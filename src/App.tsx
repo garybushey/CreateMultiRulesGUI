@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 import { PageLayout } from './components/PageLayout';
 import './App.css';
 

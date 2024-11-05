@@ -203,7 +203,8 @@ export const RulesTable = (props: any) => {
       }
 
     });
-  })
+  }, [props.sentinelData, sentinelData]);
+
   //Set the selected rules into a variable that can be passed to other calls
   function updateSelectedRuleTemplates(data: any) {
     setSelectedRuleTemplates(data.selectedItems);

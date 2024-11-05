@@ -10,9 +10,9 @@ const urlBase: string = "https://management.azure.com/subscriptions/" + subscrip
 
 //Create the API call to get the Sentinel Analytics rules
 const rulesURL = urlBase + "alertrules" + apiVersion;
-const createRuleURL = urlBase + "alertrules";
+//const createRuleURL = urlBase + "alertrules";
 const solutionTemplatesURL = urlBase + "contentTemplates" + apiVersion + "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')";
-const metaRuleURL = urlBase + "metadata/analyticsrule-";
+//const metaRuleURL = urlBase + "metadata/analyticsrule-";
 
 //Export the variables that will store the results from the various rule calls
 export var solutionTemplates: any;
@@ -52,11 +52,11 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
     var ruleData: any = ruleTemplates[index];
 
     //Load the information needed for the Metadata call
-    var packageId = ruleData.properties.packageId;
+    //var packageId = ruleData.properties.packageId;
     var version = ruleData.properties.version;
-    var author = ruleData.properties.mainTemplate.resources[1].properties.author;
-    var support = ruleData.properties.mainTemplate.resources[1].properties.support;
-    var source = ruleData.properties.mainTemplate.resources[1].properties.source;
+    //var author = ruleData.properties.mainTemplate.resources[1].properties.author;
+    //var support = ruleData.properties.mainTemplate.resources[1].properties.support;
+    //var source = ruleData.properties.mainTemplate.resources[1].properties.source;
     var type = ruleData.properties.mainTemplate.resources[0].kind;
 
     //Load the properties for the rule creation
@@ -75,9 +75,9 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
     body += JSON.stringify(properties);
     body += "}";
     var guid = generateGUID();
-    var url = createRuleURL + "/" + guid + apiVersion;
+    //var url = createRuleURL + "/" + guid + apiVersion;
     //var putResponse: any;
-    var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
+    //var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
     /* var postResponse = await Promise.all([
       fetch(url, postOptions) //Load the Solutions Rule Templates
         .then((response) => response.json())
