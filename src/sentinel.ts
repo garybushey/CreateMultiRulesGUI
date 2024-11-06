@@ -1,6 +1,10 @@
-const subscriptionID: string = "9790d913-b5da-460d-b167-ac985d5f3b83";
-const resourceGroupName: string = "azuresentinel";
-const workspaceName: string = "gabazuresentinel";
+//const subscriptionID: string = "9790d913-b5da-460d-b167-ac985d5f3b83";
+//const resourceGroupName: string = "azuresentinel";
+//const workspaceName: string = "gabazuresentinel";
+
+const subscriptionID: any = process.env.REACT_APP_SUBSCRIPTION_ID;
+const resourceGroupName: any = process.env.REACT_APP_RESOURCE_GROUP_NAME;
+const workspaceName: any = process.env.REACT_APP_WORKSPACE_NAME;
 var globalAccessToken = "";
 
 const apiVersion = "?api-version=2023-04-01-preview";

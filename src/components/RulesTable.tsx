@@ -166,11 +166,15 @@ export const RulesTable = (props: any) => {
   //An array of those items that have been selected.
   const [selectedRuleTemplates, setSelectedRuleTemplates] = useState([]);
   const [selectedRule, setSelectedRule] = useState();
-  const [sentinelData, setSentinelData] = useState([]);
+  const [sentinelData, setSentinelData] = useState(props.sentinelData);
 
+  //Load the ruleTemplates array used to display the data
+  var ruleTemplates: RuleTemplateItem[] = [];
+  const ruleTemplatesAllData: any[] = [];
+
+  //setSentinelData(props.sentinelData);
 
   useEffect(() => {
-    setSentinelData(props.sentinelData);
 
     sentinelData.map((row: any, i: number) => {
       var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
@@ -203,14 +207,13 @@ export const RulesTable = (props: any) => {
       }
 
     });
-  }, [props.sentinelData, sentinelData]);
+  }, [selectedRuleTemplates]);
 
   //Set the selected rules into a variable that can be passed to other calls
   function updateSelectedRuleTemplates(data: any) {
+    var test="";
     setSelectedRuleTemplates(data.selectedItems);
     setSelectedRule(sentinelData[Math.max(...data.selectedItems)]);
-    //Get the last added entry in the selectedItems list.
-    //var tmp: any = typeof Array.from(data.selectedItems).pop() === 'number' ? Array.from(data.selectedItems).pop() : undefined;
   }
 
   //Load the images used for tactics along with their name as a tooltip
@@ -309,10 +312,6 @@ export const RulesTable = (props: any) => {
 
     return returnValue;
   }
-
-  //Load the ruleTemplates array used to display the data
-  var ruleTemplates: RuleTemplateItem[] = [];
-  const ruleTemplatesAllData: any[] = [];
 
   function createSelectedRules() {
     var rulesToCreate: any[] = [];
