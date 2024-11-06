@@ -79,7 +79,7 @@ export const PageLayout = () => {
               <center>
                 Please sign-in to get your rules.
               </center>
-              Gary: { process.env.REACT_APP_SUBSCRIPTION_ID}
+              Gary: { process.env.message}
             </h5>
           </UnauthenticatedTemplate>
         </div>
