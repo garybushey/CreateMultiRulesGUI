@@ -65,6 +65,7 @@ export const PageLayout = () => {
         <center>
           Select one or more rule templates and then click on the "Create" button to create new rules
         </center>
+       Gary: {process.env.REACT_APP_SUBSCRIPTION_ID}
       </h5>
       <br />
       <br />
