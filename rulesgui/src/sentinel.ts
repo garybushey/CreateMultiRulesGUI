@@ -121,16 +121,31 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
 }
 
 //Create a new GUID
-function generateGUID():string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+function generateGUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
 
+type Variables = {
+  subscriptionID: string;
+  workspaceName: string;
+  resourceGroupName: string;
+  appClientID: string;
+}
+
+function getVariables(): Promise<Variables> {
+  return fetch('/api/settings')
+    .then(res => res.json()
+      .then(res => { return res as Variables }))
+}
+
 //Make a call to all the Sentinel REST APIs, store the results in the appropriate
 //variables, and then make the call to add the location that the template came from
 export async function callSentinelRulesApi(accessToken: string) {
+
+  getVariables();
   var options = getGetAuthHeader(accessToken);
 
   globalAccessToken = accessToken;

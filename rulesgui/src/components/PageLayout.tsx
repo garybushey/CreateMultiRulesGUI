@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from "react-bootstrap/Navbar";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { SignInButton } from "./SignInButton";
@@ -13,6 +13,7 @@ import { callSentinelRulesApi } from '../sentinel';
 import { RulesTable } from './RulesTable';
 import Button from 'react-bootstrap/Button';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
+import { fetchSettings } from '../services/Settings';
 
 const ProfileContent = () => {
   const { instance, accounts } = useMsal();
@@ -48,6 +49,17 @@ const ProfileContent = () => {
 
 export const PageLayout = () => {
   const isAuthenticated = useIsAuthenticated();
+  const [globalVariables, setGlobalVariables] = useState({});
+
+  useEffect( () => {
+    async function fetchData() {
+      const response = await fetchSettings();
+    
+      setGlobalVariables(response);
+    }
+    fetchData();
+    
+  },[setGlobalVariables])
 
   return (
     <>
@@ -79,7 +91,7 @@ export const PageLayout = () => {
               <center>
                 Please sign-in to get your rules.
               </center>
-              Gary: { process.env.REACT_APP_SUBSCRIPTION_ID}
+              Gary: {JSON.stringify(globalVariables)}
             </h5>
           </UnauthenticatedTemplate>
         </div>

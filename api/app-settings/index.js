@@ -1,14 +1,12 @@
 module.exports = async function (context, req) {
-    context.log('JavaScript HTTP trigger function processed a request.');
 
-    const headerColor = process.env.HEADER_COLOR;
-    const headerTitleColor =  process.env.HEADER_TITLE_COLOR;
-
-    console.log("HEADER_COLOR::::::" + headerColor);
-    console.log("HEADER_TITLE_COLOR::::::" + headerTitleColor);
+    const subscriptionID = process.env.REACT_APP_SUBSCRIPTION_ID;
+    const workspaceName =  process.env.REACT_APP_WORKSPACE_NAME;
+    const resourceGroupName = process.env.REACT_APP_RESOURCE_GROUP_NAME;
+    const appClientID = process.env.REACT_APP_CLIENT_ID
 
     context.res = {
         status: 200,
-        body: {headerColor,  headerTitleColor}
+        body: {subscriptionID, workspaceName, resourceGroupName, appClientID}
     };
 };
