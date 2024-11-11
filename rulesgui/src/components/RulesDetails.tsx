@@ -12,8 +12,8 @@ import {
 const useStyles = makeStyles({
   displayTable: { color: "black", ...shorthands.border('0px') },
   displayRow: { ...shorthands.border('0px'), height: "40px" },
-  displayRuleName: { ...shorthands.border('0px'), height: "40px", fontWeight: "bold", fontSize:"18px", overflowY:["clip"] },
-  displayCell: { ...shorthands.border('0px'), height: "10px !important", textAlign: "left", verticalAlign:"top" },
+  displayRuleName: { ...shorthands.border('0px'), height: "40px", fontWeight: "bold", fontSize: "18px", overflowY: ["clip"] },
+  displayCell: { ...shorthands.border('0px'), height: "10px !important", textAlign: "left", verticalAlign: "top" },
   displayCellDescription: { ...shorthands.border('0px'), height: "20px", textAlign: "left", fontWeight: "bold" },
   displayTextarea: { height: "243px", width: "472px", display: "flex", flexDirection: "column", fontSize: "13px" }
 });
@@ -111,20 +111,18 @@ export const RulesDetails = (props: any) => {
     connectorId: string;
     dataTypes: string[];
   }
-  
-  const  showDataSources = (requiredDataConnectors: requiredDataConnectorType[]) => {
-    if (requiredDataConnectors !== undefined)
-    {
-    return requiredDataConnectors.map( dataConnector => <TableRow><TableCell className={classes.displayCell}>{dataConnector.connectorId}{showDataTables(dataConnector.dataTypes)}</TableCell></TableRow>)
+
+  const showDataSources = (requiredDataConnectors: requiredDataConnectorType[]) => {
+    if (requiredDataConnectors !== undefined) {
+      return requiredDataConnectors.map(dataConnector => <TableRow><TableCell className={classes.displayCell}>{dataConnector.connectorId}{showDataTables(dataConnector.dataTypes)}</TableCell></TableRow>)
     }
-    else
-    {
+    else {
       return <></>
     }
   }
 
-  const showDataTables = (dataTables:string[]) => {
-    return dataTables.map( table => <TableRow><TableCell>{table}</TableCell></TableRow>)
+  const showDataTables = (dataTables: string[]) => {
+    return dataTables.map(table => <TableRow><TableCell>{table}</TableCell></TableRow>)
   }
 
 
@@ -149,7 +147,7 @@ export const RulesDetails = (props: any) => {
             </TableRow>
             <TableRow className={classes.displayRow}>
               <TableCell className={classes.displayCell}>
-                {showDataSources(requiredDataConnectors)}
+                {/* {showDataSources(requiredDataConnectors)} */}
               </TableCell>
             </TableRow>
             <TableRow className={classes.displayRow}>

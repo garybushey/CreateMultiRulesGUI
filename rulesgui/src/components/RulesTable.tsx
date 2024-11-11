@@ -11,22 +11,40 @@ import {
   createTableColumn,
   Tooltip,
   Button,
-  makeStyles
+  makeStyles,
+  shorthands
 } from "@fluentui/react-components";
-import { Info16Regular } from "@fluentui/react-icons";
+import { Info16Regular, Status12Filled } from "@fluentui/react-icons";
 import { techniqueDescriptions } from "./techniques"
-import { createRuleFromTemplate } from "../sentinel";
+import { createRuleFromTemplate } from "../services/sentinel";
 import { RulesDetails } from "./RulesDetails";
+
 
 const useStyles = makeStyles({
   root: { color: "black" },
+  inUse: {
+    backgroundColor: "#F3F2F1",
+    color: "#605E5c",
+    ...shorthands.border("1px", "solid", "#605e5c"),
+    fontSize: "10px",
+    fontWeight: "bold"
+  },
+  "colorSeverityClassHigh": {
+    backgroundColor: "red"
+  },
+  "colorSeverityClassMedium": {
+    backgroundColor: "orange"
+  },
+  "colorSeverityClassLow": {
+    backgroundColor: "yellow"
+  },
+  "colorSeverityClassInformational": {
+    backgroundColor: "white"
+  }
+
 });
 
 type ID = {
-  label: string
-};
-
-type Status = {
   label: string
 };
 
@@ -73,11 +91,15 @@ type Version = {
   label: string;
 }
 
+type SubTechniques = {
+  label: string;
+};
+
 
 //This is a list of all the fields that make up an individual item
 type RuleTemplateItem = {
   severity: Severity;
-  status: Status;
+  status: string;
   id: ID;
   inUse: InUse;
   name: Name;
@@ -87,7 +109,9 @@ type RuleTemplateItem = {
   techniques: Techniques;
   sourceName: SourceName;
   requiredDataConnectors: RequiredDataConnectors;
-  version: Version
+  version: Version;
+  subTechniques: SubTechniques;
+  
 };
 
 //Get the image that represents the rule types
@@ -138,80 +162,86 @@ function translateRuleType(kind: string) {
   return translatedRuleType
 }
 
-//Get the color that represents the severity
-function getSeverityColor(severity: string) {
-  var sentinelColorSeverityClass: JSX.Element = <div></div>;
-  switch (severity) {
-    case "High":
-      sentinelColorSeverityClass = <div className="colorSeverityClassHigh">&nbsp;</div>
-      break;
-    case "Medium":
-      sentinelColorSeverityClass = <div className="colorSeverityClassMedium">&nbsp;</div>
-      break;
-    case "Low":
-      sentinelColorSeverityClass = <div className="colorSeverityClassLow">&nbsp;</div>
-      break;
-    case "Informational":
-      sentinelColorSeverityClass = <div className="colorSeverityClassInformational">&nbsp;</div>
-      break;
-    default:
-      break;
-  }
-  return sentinelColorSeverityClass;
-}
 
 
 export const RulesTable = (props: any) => {
-  const classes = useStyles();
+  const styles = useStyles();
   //An array of those items that have been selected.
   const [selectedRuleTemplates, setSelectedRuleTemplates] = useState([]);
   const [selectedRule, setSelectedRule] = useState();
   const [sentinelData, setSentinelData] = useState(props.sentinelData);
+  const [ruleTemplates, setRuleTemplates] = useState<RuleTemplateItem[]>([]);
 
   //Load the ruleTemplates array used to display the data
-  var ruleTemplates: RuleTemplateItem[] = [];
+  // var ruleTemplates: RuleTemplateItem[] = [];
   const ruleTemplatesAllData: any[] = [];
 
   //setSentinelData(props.sentinelData);
 
   useEffect(() => {
+    var tmpRuleTemplates: RuleTemplateItem[] = [];
+    if (sentinelData != null) {
+      sentinelData.map((row: any, i: number) => {
+        var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
+        var thisRow: any = row.properties.mainTemplate.resources[0];
+        var thisSeverity: string = (thisProperties.severity === undefined ? "High" : thisProperties.severity);
+        var thisInUse = row.inUse;
 
-    sentinelData.map((row: any, i: number) => {
-      var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
-      var thisRow: any = row.properties.mainTemplate.resources[0];
-      var thisSeverity: string = (thisProperties.severity === undefined ? "High" : thisProperties.severity);
-      var thisInUse = row.inUse;
+        if (
+          thisRow.kind === "Scheduled" ||
+          thisRow.kind === "MicrosoftSecurityIncidentCreation" ||
+          thisRow.kind === "NRT"
+        ) {
+          var item: RuleTemplateItem = {
+            id: { label: thisRow.name },
+            severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
+            status: "",
+            inUse: { label: thisInUse },
+            name: { label: thisProperties.displayName },
+            ruleType: { label: translateRuleType(thisRow.kind), icon: getRuleImage(thisRow.kind) },
+            dataSources: { label: row.properties.mainTemplate.resources[1].properties.source.name },
+            tactics: { label: "", icon: getTacticsImages(thisProperties.tactics) },
+            techniques: { label: loadTechniques(thisProperties.techniques) },
+            sourceName: { label: row.properties.mainTemplate.resources[1].properties.source.name },
+            requiredDataConnectors: { label: thisProperties.requiredDataConnectors },
+            version: { label: row.properties.version },
+            subTechniques: {label: thisProperties.subTechniques}
+          };
+          thisRow.properties.version = row.properties.version;
+          tmpRuleTemplates.push(item);
+          ruleTemplatesAllData.push(thisRow);
+        }
 
-      if (
-        thisRow.kind === "Scheduled" ||
-        thisRow.kind === "MicrosoftSecurityIncidentCreation" ||
-        thisRow.kind === "NRT"
-      ) {
-        var item: RuleTemplateItem = {
-          id: { label: thisRow.name },
-          severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
-          status: { label: "" },
-          inUse: { label: thisInUse },
-          name: { label: thisProperties.displayName },
-          ruleType: { label: translateRuleType(thisRow.kind), icon: getRuleImage(thisRow.kind) },
-          dataSources: { label: row.properties.mainTemplate.resources[1].properties.source.name },
-          tactics: { label: "", icon: getTacticsImages(thisProperties.tactics) },
-          techniques: { label: loadTechniques(thisProperties.techniques) },
-          sourceName: { label: "Gallery" },
-          requiredDataConnectors: { label: thisProperties.requiredDataConnectors },
-          version: { label: row.properties.version }
-        };
-        thisRow.properties.version = row.properties.version;
-        ruleTemplates.push(item);
-        ruleTemplatesAllData.push(thisRow);
-      }
-
-    });
+      });
+    }
+    setRuleTemplates(tmpRuleTemplates);
   }, [selectedRuleTemplates]);
 
+
+  //Get the color that represents the severity
+  function getSeverityColor(severity: string) {
+    var sentinelColorSeverityClass: JSX.Element = <div></div>;
+    switch (severity) {
+      case "High":
+        sentinelColorSeverityClass = <div className={styles.colorSeverityClassHigh}>&nbsp;</div>
+        break;
+      case "Medium":
+        sentinelColorSeverityClass = <div className={styles.colorSeverityClassMedium}>&nbsp;</div>
+        break;
+      case "Low":
+        sentinelColorSeverityClass = <div className={styles.colorSeverityClassLow}>&nbsp;</div>
+        break;
+      case "Informational":
+        sentinelColorSeverityClass = <div className={styles.colorSeverityClassInformational}>&nbsp;</div>
+        break;
+      default:
+        break;
+    }
+    return sentinelColorSeverityClass;
+  }
   //Set the selected rules into a variable that can be passed to other calls
   function updateSelectedRuleTemplates(data: any) {
-    var test="";
+    var test = "";
     setSelectedRuleTemplates(data.selectedItems);
     setSelectedRule(sentinelData[Math.max(...data.selectedItems)]);
   }
@@ -313,15 +343,35 @@ export const RulesTable = (props: any) => {
     return returnValue;
   }
 
+
   function createSelectedRules() {
     var rulesToCreate: any[] = [];
     if (selectedRuleTemplates !== undefined) {
       selectedRuleTemplates.forEach((element) => {
-        rulesToCreate.push(sentinelData[element]);
-        ruleTemplates[element].status.label = "Gary Test";
+        const thisData = sentinelData[element];
+        rulesToCreate.push(thisData);
+        // setRuleTemplates((nds: RuleTemplateItem[]) => nds.map((node: RuleTemplateItem) => {
+        //   if (thisData.properties.contentId == node.id.label) {
+        //    // ...node, status.label="Creating Rule..."
+        //     //node.status.label = "Creating Rule..."
+        //     createRuleFromTemplate(thisData);
+        //   }
+
+        // }));
+        setRuleTemplates(prevNodes =>
+          prevNodes.map(node =>
+            thisData.properties.contentId === node.id.label ? { ...node, status: "Creating Rule..." } : node
+          )
+        );
+
+        setRuleTemplates(prevNodes =>
+          prevNodes.map(node =>
+            thisData.properties.contentId === node.id.label ? { ...node, status: "Rule Created" } : node
+          )
+        );
       });
-      createRuleFromTemplate(rulesToCreate);
     }
+    createRuleFromTemplate(rulesToCreate);
   }
 
   //Define all the individual display columns
@@ -347,7 +397,7 @@ export const RulesTable = (props: any) => {
         return "In Use";
       },
       renderCell: (item) => {
-        return <TableCellLayout className="inUse">{item.inUse.label}</TableCellLayout>;
+        return <TableCellLayout>{item.inUse.label != "" ? (<div className={styles.inUse}>&nbsp;&nbsp;IN USE&nbsp;&nbsp;</div>) : (" ")}</TableCellLayout>;
       },
     }),
     createTableColumn<RuleTemplateItem>({
@@ -380,7 +430,7 @@ export const RulesTable = (props: any) => {
         return a.dataSources.label.localeCompare(b.dataSources.label);
       },
       renderHeaderCell: () => {
-        return "Source Name";
+        return "Data Sources";
       },
       renderCell: (item) => {
         return <TableCellLayout truncate>{item.dataSources.label}</TableCellLayout>;
@@ -405,35 +455,41 @@ export const RulesTable = (props: any) => {
       },
     }),
     createTableColumn<RuleTemplateItem>({
-      columnId: "viewInfo",
-      compare: (a, b) => {
-        return a.status.label.localeCompare(b.status.label);
-      },
+      columnId: "subTechniques",
       renderHeaderCell: () => {
-        return "View Info";
+        return "Sub Techniques";
       },
       renderCell: (item) => {
-        return <TableCellLayout> <span id="showDialogspan">show info</span></TableCellLayout>;
+        return <TableCellLayout>{item.subTechniques.label}</TableCellLayout>;
+      },
+    }),
+    createTableColumn<RuleTemplateItem>({
+      columnId: "sourceName",
+      renderHeaderCell: () => {
+        return "Source Name";
+      },
+      renderCell: (item) => {
+        return <TableCellLayout truncate>{item.sourceName.label}</TableCellLayout>;
       },
     }),
     createTableColumn<RuleTemplateItem>({
       columnId: "status",
       compare: (a, b) => {
-        return a.status.label.localeCompare(b.status.label);
+        return a.status.localeCompare(b.status);
       },
       renderHeaderCell: () => {
         return "Status";
       },
       renderCell: (item) => {
-        return <TableCellLayout >{item.status.label}</TableCellLayout>;
+        return <TableCellLayout >{item.status}</TableCellLayout>;
       },
     }),
   ];
 
   const columnSizingOptions = {
     tactics: {
-      minWidth: 150,
-      defaultWidth: 400
+      minWidth: 50,
+      defaultWidth: 100
     },
     severity: {
       minWidth: 70,
@@ -446,6 +502,10 @@ export const RulesTable = (props: any) => {
     name: {
       minWidth: 100,
       defaultWidth: 400
+    },
+    sourceName: {
+      minWidth: 100,
+      defaultWidth: 200
     }
   };
 
@@ -454,7 +514,8 @@ export const RulesTable = (props: any) => {
     <>
       <div className="sentinelOverview">
         <div className="floatLeft">
-          <Button {...props} onClick={createSelectedRules} appearance="primary">Create Rule(s)</Button>
+
+          <Button {...props} onClick={createSelectedRules} appearance="primary" disabled={ruleTemplates.length === 0}>Create Rule(s)</Button>
           <DataGrid
             items={ruleTemplates}
             columns={columns}
@@ -462,7 +523,7 @@ export const RulesTable = (props: any) => {
             selectionMode="multiselect"
             getRowId={(item) => item.rowId}
             onSelectionChange={(e, data) => updateSelectedRuleTemplates(data)}
-            className={classes.root}
+            className={styles.root}
             resizableColumns
             id="ruleTemplateGrid"
             columnSizingOptions={columnSizingOptions}
@@ -485,10 +546,18 @@ export const RulesTable = (props: any) => {
             </DataGridBody>
           </DataGrid>
         </div>
-        <div key="selectedRule" className="floatRight"> {selectedRule ? (<RulesDetails selectedRow={selectedRule} />) : (
-          <RulesDetails selectedRow="" />
+        {ruleTemplates.length === 0 ? (
+          <div>No rule templates available</div>
+        ) : (
+          <div key="selectedRule" className="floatRight">
+            {selectedRule ?
+              (<RulesDetails selectedRow={selectedRule} />
+              ) : (
+                <RulesDetails selectedRow="" />
+              )}
+          </div>
         )}
-        </div>
+
       </div>
     </>
   );

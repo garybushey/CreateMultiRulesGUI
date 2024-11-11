@@ -8,16 +8,23 @@ import Navbar from "react-bootstrap/Navbar";
 import { useIsAuthenticated } from "@azure/msal-react";
 import { SignInButton } from "./SignInButton";
 import { SignOutButton } from "./SignOutButton";
-import { loginRequest } from '../authConfig';
-import { callSentinelRulesApi } from '../sentinel';
+import { loginRequest } from '../services/authConfig';
+import { getSentinelRulesandTemplates } from '../services/sentinel';
 import { RulesTable } from './RulesTable';
 import Button from 'react-bootstrap/Button';
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
 import { fetchSettings } from '../services/Settings';
 
+
+interface globalData {
+  subscriptionID: string,
+  workspaceName: string,
+  resourceGroupName: string,
+  appClientID: string
+}
 const ProfileContent = () => {
   const { instance, accounts } = useMsal();
-  const [sentinelData, setSentinelData] = useState(null);
+  const [sentinelData, setSentinelData] = useState();
 
   //Load all the rules 
   function GetRules() {
@@ -28,15 +35,14 @@ const ProfileContent = () => {
         account: accounts[0],
       })
       .then((response) => {
-        callSentinelRulesApi(response.accessToken).then((response) => setSentinelData(response));
+        getSentinelRulesandTemplates(response.accessToken).then((response) => setSentinelData(response));
       });
   }
 
   return (
     <>
 
-      {/* If the "sentinelData" variable has data shows the RulesTable component}
-                   otherwise load the button to load the rules */}
+      
       {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
         <Button variant="secondary" onClick={GetRules}>
           Load Rule Templates
@@ -49,17 +55,17 @@ const ProfileContent = () => {
 
 export const PageLayout = () => {
   const isAuthenticated = useIsAuthenticated();
-  const [globalVariables, setGlobalVariables] = useState({});
+  const [globalVariables, setGlobalVariables]: any = useState("");
 
-  useEffect( () => {
+  useEffect(() => {
     async function fetchData() {
       const response = await fetchSettings();
-    
+
       setGlobalVariables(response);
     }
     fetchData();
-    
-  },[setGlobalVariables])
+
+  }, [setGlobalVariables])
 
   return (
     <>
@@ -91,7 +97,7 @@ export const PageLayout = () => {
               <center>
                 Please sign-in to get your rules.
               </center>
-              Gary: {JSON.stringify(globalVariables)}
+              test: {globalVariables.subscriptionID}
             </h5>
           </UnauthenticatedTemplate>
         </div>

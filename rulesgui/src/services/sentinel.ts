@@ -2,6 +2,8 @@
 //const resourceGroupName: string = "azuresentinel";
 //const workspaceName: string = "gabazuresentinel";
 
+import { notDeepStrictEqual } from "assert";
+
 const subscriptionID: any = process.env.REACT_APP_SUBSCRIPTION_ID;
 const resourceGroupName: any = process.env.REACT_APP_RESOURCE_GROUP_NAME;
 const workspaceName: any = process.env.REACT_APP_WORKSPACE_NAME;
@@ -14,9 +16,9 @@ const urlBase: string = "https://management.azure.com/subscriptions/" + subscrip
 
 //Create the API call to get the Sentinel Analytics rules
 const rulesURL = urlBase + "alertrules" + apiVersion;
-//const createRuleURL = urlBase + "alertrules";
+const createRuleURL = urlBase + "alertrules";
 const solutionTemplatesURL = urlBase + "contentTemplates" + apiVersion + "&%24filter=(properties%2FcontentKind%20eq%20'AnalyticsRule')";
-//const metaRuleURL = urlBase + "metadata/analyticsrule-";
+const metaRuleURL = urlBase + "metadata/analyticsrule-";
 
 //Export the variables that will store the results from the various rule calls
 export var solutionTemplates: any;
@@ -50,17 +52,17 @@ function getPostAuthHeader(accessToken: string, body: any, method: string) {
 }
 
 //Create a rule from the passed in rule templates.  Can create more than one rule at a time.
-export async function createRuleFromTemplate(ruleTemplates: any) {
-  for (var index: number = 0; index < ruleTemplates.length; index++) {
-    var body: string = "{";
-    var ruleData: any = ruleTemplates[index];
+export async function createRuleFromTemplate(allRulesToCreate: any[]) {
 
+  for (var i = 0; i < allRulesToCreate.length; i++) {
+    var body: string = "{";
+    const ruleData = allRulesToCreate[i];
     //Load the information needed for the Metadata call
-    //var packageId = ruleData.properties.packageId;
+    var packageId = ruleData.properties.packageId;
     var version = ruleData.properties.version;
-    //var author = ruleData.properties.mainTemplate.resources[1].properties.author;
-    //var support = ruleData.properties.mainTemplate.resources[1].properties.support;
-    //var source = ruleData.properties.mainTemplate.resources[1].properties.source;
+    var author = ruleData.properties.mainTemplate.resources[1].properties.author;
+    var support = ruleData.properties.mainTemplate.resources[1].properties.support;
+    var source = ruleData.properties.mainTemplate.resources[1].properties.source;
     var type = ruleData.properties.mainTemplate.resources[0].kind;
 
     //Load the properties for the rule creation
@@ -79,10 +81,10 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
     body += JSON.stringify(properties);
     body += "}";
     var guid = generateGUID();
-    //var url = createRuleURL + "/" + guid + apiVersion;
-    //var putResponse: any;
-    //var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
-    /* var postResponse = await Promise.all([
+    var url = createRuleURL + "/" + guid + apiVersion;
+    var putResponse: any;
+    var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
+    var postResponse = await Promise.all([
       fetch(url, postOptions) //Load the Solutions Rule Templates
         .then((response) => response.json())
         .catch((error) => console.log("Error" + error)),
@@ -116,7 +118,7 @@ export async function createRuleFromTemplate(ruleTemplates: any) {
       fetch(metaURL, metaOptions) //Load the Solutions Rule Templates
         .then((response) => response.json())
         .catch((error) => console.log("Error" + error)),
-    ]); */
+    ]);
   }
 }
 
@@ -143,7 +145,7 @@ function getVariables(): Promise<Variables> {
 
 //Make a call to all the Sentinel REST APIs, store the results in the appropriate
 //variables, and then make the call to add the location that the template came from
-export async function callSentinelRulesApi(accessToken: string) {
+export async function getSentinelRulesandTemplates(accessToken: string) {
 
   getVariables();
   var options = getGetAuthHeader(accessToken);
@@ -167,19 +169,23 @@ export async function callSentinelRulesApi(accessToken: string) {
 
 //Check to see if this template is being used.
 function isRuleTemplateInUse(solutionTemplates: any) {
-  for (var index: number = 0; index < solutionRules.length; index++) {
-    if (solutionRules[index].properties.alertRuleTemplateName !== undefined) {
-      for (
-        var index1: number = 0;
-        index1 < solutionTemplates.length;
-        index1++
-      ) {
-        if (
-          solutionTemplates[index1].properties.contentId ===
-          solutionRules[index].properties.alertRuleTemplateName
-        ) {
-          solutionTemplates[index1].inUse = "In Use";
-          break;
+
+  //Iterate thorough all the rule templates
+  for (var index1: number = 0; index1 < solutionTemplates.length; index1++) {
+    solutionTemplates[index1].inUse = "";
+    //If there are any rules loaded...
+    if (solutionRules != undefined) {
+      //Iterate through all the rules that have already been created
+      for (var index: number = 0; index < solutionRules.length; index++) {
+        //Check to see if the rule has a rule template ID associated with it.
+        if (solutionRules[index].properties.alertRuleTemplateName !== undefined) {
+          if (
+            //If the template's ID equals the rule's alert template ID, then the template is in use.
+            solutionTemplates[index1].properties.contentId === solutionRules[index].properties.alertRuleTemplateName
+          ) {
+            solutionTemplates[index1].inUse = "IN USE";
+            break;
+          }
         }
       }
     }
