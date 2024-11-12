@@ -1,9 +1,3 @@
-//const subscriptionID: string = "9790d913-b5da-460d-b167-ac985d5f3b83";
-//const resourceGroupName: string = "azuresentinel";
-//const workspaceName: string = "gabazuresentinel";
-
-import { notDeepStrictEqual } from "assert";
-
 const subscriptionID: any = process.env.REACT_APP_SUBSCRIPTION_ID;
 const resourceGroupName: any = process.env.REACT_APP_RESOURCE_GROUP_NAME;
 const workspaceName: any = process.env.REACT_APP_WORKSPACE_NAME;
@@ -137,17 +131,14 @@ type Variables = {
   appClientID: string;
 }
 
-function getVariables(): Promise<Variables> {
-  return fetch('/api/settings')
-    .then(res => res.json()
-      .then(res => { return res as Variables }))
+ async function getVariables() {
+  const response = await fetch('/api/settings')
+  return await response.json();
 }
 
 //Make a call to all the Sentinel REST APIs, store the results in the appropriate
 //variables, and then make the call to add the location that the template came from
 export async function getSentinelRulesandTemplates(accessToken: string) {
-
-  getVariables();
   var options = getGetAuthHeader(accessToken);
 
   globalAccessToken = accessToken;

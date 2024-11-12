@@ -111,7 +111,7 @@ type RuleTemplateItem = {
   requiredDataConnectors: RequiredDataConnectors;
   version: Version;
   subTechniques: SubTechniques;
-  
+
 };
 
 //Get the image that represents the rule types
@@ -162,9 +162,7 @@ function translateRuleType(kind: string) {
   return translatedRuleType
 }
 
-
-
-export const RulesTable = (props: any) => {
+export function RulesTable(props: any) {
   const styles = useStyles();
   //An array of those items that have been selected.
   const [selectedRuleTemplates, setSelectedRuleTemplates] = useState([]);
@@ -205,7 +203,7 @@ export const RulesTable = (props: any) => {
             sourceName: { label: row.properties.mainTemplate.resources[1].properties.source.name },
             requiredDataConnectors: { label: thisProperties.requiredDataConnectors },
             version: { label: row.properties.version },
-            subTechniques: {label: thisProperties.subTechniques}
+            subTechniques: { label: thisProperties.subTechniques }
           };
           thisRow.properties.version = row.properties.version;
           tmpRuleTemplates.push(item);

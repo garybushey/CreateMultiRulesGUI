@@ -1,29 +1,59 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
 import { FluentProvider, teamsLightTheme } from "@fluentui/react-components";
-
-import { PublicClientApplication } from "@azure/msal-browser";
-import { MsalProvider } from "@azure/msal-react";
-import { msalConfig } from "./services/authConfig";
+import {
+  PublicClientApplication,
+  EventType,
+  EventMessage,
+  AuthenticationResult,
+  Configuration
+} from "@azure/msal-browser";
 
 import { PageLayout } from './components/PageLayout';
 
 // Bootstrap components
 import "bootstrap/dist/css/bootstrap.min.css";
 
+const msalConfig: Configuration = {
+  auth: {
+    clientId: process.env.REACT_APP_CLIENT_ID + "",
+    authority: "https://login.microsoftonline.com/" + process.env.REACT_APP_TENANT_ID,
+    redirectUri: "/",
+    postLogoutRedirectUri: "/"
+  },
+  system: {
+    allowNativeBroker: false // Disables WAM Broker
+  }
+};
+
 const msalInstance = new PublicClientApplication(msalConfig);
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
+msalInstance.initialize().then(() => {
+  // Account selection logic is app dependent. Adjust as needed for different use cases.
+  const accounts = msalInstance.getAllAccounts();
+  if (accounts.length > 0) {
+    msalInstance.setActiveAccount(accounts[0]);
+  }
 
-root.render(
-  <FluentProvider theme={teamsLightTheme}>
-    <React.StrictMode>
-      <MsalProvider instance={msalInstance}>
-        <PageLayout />
-      </MsalProvider>
-    </React.StrictMode>
-  </FluentProvider>
-);
+  msalInstance.addEventCallback((event: EventMessage) => {
+    if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
+      const payload = event.payload as AuthenticationResult;
+      const account = payload.account;
+      msalInstance.setActiveAccount(account);
+    }
+  });
+
+  const root = ReactDOM.createRoot(
+    document.getElementById("root") as HTMLElement
+  );
+  root.render(
+    <>
+      <FluentProvider theme={teamsLightTheme}>
+        <React.StrictMode>
+          <PageLayout pca={msalInstance} />
+        </React.StrictMode>
+      </FluentProvider>
+    </>
+  );
+});
+

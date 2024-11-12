@@ -4,104 +4,132 @@
  */
 
 import { useState, useEffect } from 'react';
-import Navbar from "react-bootstrap/Navbar";
-import { useIsAuthenticated } from "@azure/msal-react";
-import { SignInButton } from "./SignInButton";
-import { SignOutButton } from "./SignOutButton";
+import { useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, MsalProvider } from "@azure/msal-react";
+import { IPublicClientApplication } from "@azure/msal-browser";
+import { SignInSignOutButton } from "./SignInSignOutButton";
+//import { SignInButton } from './SignInButton';
 import { loginRequest } from '../services/authConfig';
 import { getSentinelRulesandTemplates } from '../services/sentinel';
 import { RulesTable } from './RulesTable';
-import Button from 'react-bootstrap/Button';
-import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
-import { fetchSettings } from '../services/Settings';
+import { Button, makeStyles, tokens, Spinner } from "@fluentui/react-components";
 
-
-interface globalData {
-  subscriptionID: string,
-  workspaceName: string,
-  resourceGroupName: string,
-  appClientID: string
-}
-const ProfileContent = () => {
-  const { instance, accounts } = useMsal();
-  const [sentinelData, setSentinelData] = useState();
-
-  //Load all the rules 
-  function GetRules() {
-    //  acquires an access token which is then attached to a request for Sentinel REST API data
-    instance
-      .acquireTokenSilent({
-        ...loginRequest,
-        account: accounts[0],
-      })
-      .then((response) => {
-        getSentinelRulesandTemplates(response.accessToken).then((response) => setSentinelData(response));
-      });
+const useStyles = makeStyles({
+  headerContainer: {
+    alignItems: "top",
+    verticalAlign: "left",
+    display: "flex",
+    flexDirection: "row",
+    alignContent: "center",
+    justifyContent: "flex-start",
+    width: "100%",
+    backgroundColor: "blue",
+  },
+  flexChild50Left: {
+    alignSelf: "flex-start",
+    flexBasis: "auto",
+    justifyContent: "flex-start",
+    width: "48%",
+    height: "60px",
+    alignContent: "center"
+  },
+  flexChild50Right: {
+    display: "flex",
+    alignSelf: "end",
+    flexBasis: "auto",
+    justifyContent: "flex-end",
+    width: "48%",
+  },
+  loginButton: {
+    paddingRight: "10px"
+  },
+  headerText: {
+    paddingLeft: "10px",
+    fontSize: "20px",
+    color: "white"
   }
+});
 
-  return (
-    <>
-
-      
-      {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
-        <Button variant="secondary" onClick={GetRules}>
-          Load Rule Templates
-        </Button>
-      )}
-
-    </>
-  );
+type AppProps = {
+  pca: IPublicClientApplication;
 };
 
-export const PageLayout = () => {
+export function PageLayout({ pca }: AppProps) {
   const isAuthenticated = useIsAuthenticated();
-  const [globalVariables, setGlobalVariables]: any = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const styles = useStyles();
 
-  useEffect(() => {
-    async function fetchData() {
-      const response = await fetchSettings();
+  const ProfileContent = () => {
+    const { instance, accounts } = useMsal();
+    const [sentinelData, setSentinelData] = useState();
 
-      setGlobalVariables(response);
+    //Load all the rules 
+    function GetRules() {
+      //  acquires an access token which is then attached to a request for Sentinel REST API data
+      setIsLoading(true);
+      instance
+        .acquireTokenSilent({
+          ...loginRequest,
+          account: accounts[0],
+        })
+        .then((response) => {
+          getSentinelRulesandTemplates(response.accessToken).then((response) => setSentinelData(response));
+        });
+      setIsLoading(false);
     }
-    fetchData();
 
-  }, [setGlobalVariables])
+    return (
+      <>
+        {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
+          <Button appearance="secondary" onClick={GetRules}>
+            Load Rule Templates
+          </Button>
+        )}
+
+      </>
+    );
+  };
 
   return (
     <>
-      <Navbar bg="primary" variant="dark" className="navbarStyle">
-        <a className="navbar-brand" href="/">
-          Create multiple Microsoft Sentinel rules from rule templates
-        </a>
-        <div className="collapse navbar-collapse justify-content-end">
-          {isAuthenticated ? <SignOutButton /> : <SignInButton />}
+      <MsalProvider instance={pca}>
+        <div className={styles.headerContainer}>
+          <div className={styles.flexChild50Left}>
+            <div className={styles.headerText}>
+              Create multiple Microsoft Sentinel rules from rule templates
+            </div>
+          </div>
+          <div className={styles.flexChild50Right}>
+            <SignInSignOutButton />
+            {/* {isAuthenticated ? <SignOutButton /> : <SignInButton />} */}
+          </div>
         </div>
-      </Navbar>
-      <br />
-      <br />
-      <h5>
+        <br />
+        <br />
+        <h5>
+          <center>
+            Select one or more rule templates and then click on the "Create" button to create new rules
+          </center>
+        </h5>
+        <br />
+        <br />
         <center>
-          Select one or more rule templates and then click on the "Create" button to create new rules
-        </center>
-      </h5>
-      <br />
-      <br />
-      <center>
-        <div className="App">
-          <AuthenticatedTemplate>
-            <ProfileContent />
-          </AuthenticatedTemplate>
+          <div className="App">
+            <AuthenticatedTemplate>
+              {isLoading ? <Spinner></Spinner> : <div></div>}
+              <ProfileContent />
+            </AuthenticatedTemplate>
 
-          <UnauthenticatedTemplate>
-            <h5>
-              <center>
-                Please sign-in to get your rules.
-              </center>
-              test: {globalVariables.subscriptionID}
-            </h5>
-          </UnauthenticatedTemplate>
-        </div>
-      </center>
+            <UnauthenticatedTemplate>
+              <h5>
+                <center>
+                  Please sign-in to get your rules.
+                </center>
+                test: {process.env.REACT_APP_SUBSCRIPTION_ID}
+              </h5>
+            </UnauthenticatedTemplate>
+          </div>
+        </center>
+      </MsalProvider>
     </>
   );
 };

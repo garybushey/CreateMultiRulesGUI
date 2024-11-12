@@ -69,8 +69,8 @@ function generateEventGroupingText(eventGrouping: string) {
 
 
 
-export const RulesDetails = (props: any) => {
-  const classes = useStyles();
+export function RulesDetails(props: any) {
+  const styles = useStyles();
 
   var ruleTemplate: any = props.selectedRow
   var displayName: string = " ";
@@ -114,7 +114,7 @@ export const RulesDetails = (props: any) => {
 
   const showDataSources = (requiredDataConnectors: requiredDataConnectorType[]) => {
     if (requiredDataConnectors !== undefined) {
-      return requiredDataConnectors.map(dataConnector => <TableRow><TableCell className={classes.displayCell}>{dataConnector.connectorId}{showDataTables(dataConnector.dataTypes)}</TableCell></TableRow>)
+      return requiredDataConnectors.map(dataConnector => <TableRow><TableCell className={styles.displayCell}>{dataConnector.connectorId}{showDataTables(dataConnector.dataTypes)}</TableCell></TableRow>)
     }
     else {
       return <></>
@@ -131,84 +131,84 @@ export const RulesDetails = (props: any) => {
   return (
     <>
       {ruleTemplate ? (
-        <Table className={classes.displayTable}>
+        <Table className={styles.displayTable}>
           <TableBody>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayRuleName}>{displayName}</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayRuleName}>{displayName}</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Description</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Description</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>{description}</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>{description}</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Data Sources</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Data Sources</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>
                 {/* {showDataSources(requiredDataConnectors)} */}
               </TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Rule Query</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Rule Query</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>
-                <Textarea value={ruleQuery} disabled size="large" resize="both" className={classes.displayTextarea} />
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>
+                <Textarea value={ruleQuery} disabled size="large" resize="both" className={styles.displayTextarea} />
               </TableCell>
             </TableRow>
             {ruleTemplate.kind !== "NRT" ? (
               <>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCellDescription}>Rule Frequency</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCellDescription}>Rule Frequency</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCell}>Run query every {generateTimeText(ruleFrequency)}</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCell}>Run query every {generateTimeText(ruleFrequency)}</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCellDescription}>Rule period</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCellDescription}>Rule period</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCell}>Last {generateTimeText(rulePeriod)} data</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCell}>Last {generateTimeText(rulePeriod)} data</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCellDescription}>Rule Threshold</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCellDescription}>Rule Threshold</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCell}>{generateRuleThreshold(triggerOperator, triggerThreshold)}</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCell}>{generateRuleThreshold(triggerOperator, triggerThreshold)}</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCellDescription}>Event Grouping</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCellDescription}>Event Grouping</TableCell>
                 </TableRow>
-                <TableRow className={classes.displayRow}>
-                  <TableCell className={classes.displayCell}>{generateEventGroupingText(eventGrouping)}</TableCell>
+                <TableRow className={styles.displayRow}>
+                  <TableCell className={styles.displayCell}>{generateEventGroupingText(eventGrouping)}</TableCell>
                 </TableRow>
               </>
             ) : (<div></div>)}
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Suppression</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Suppression</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>{suppressionEnabled}</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>{suppressionEnabled}</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Create incidents from this rule</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Create incidents from this rule</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>{createIncidents}</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>{createIncidents}</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Alert grouping</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Alert grouping</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>{alertGrouping}</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>{alertGrouping}</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCellDescription}>Version</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCellDescription}>Version</TableCell>
             </TableRow>
-            <TableRow className={classes.displayRow}>
-              <TableCell className={classes.displayCell}>{version}</TableCell>
+            <TableRow className={styles.displayRow}>
+              <TableCell className={styles.displayCell}>{version}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
