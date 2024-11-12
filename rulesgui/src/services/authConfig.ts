@@ -10,21 +10,6 @@ import { LogLevel } from "@azure/msal-browser";
  * For a full list of MSAL.js configuration parameters, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md
  */
-
-type Variables = {
-  subscriptionID: string;
-  workspaceName: string;
-  resourceGroupName: string;
-  appClientID: string;
-}
-
-function getVariables(): Promise<Variables> {
-  return fetch('/api/settings')
-    .then(res => res.json()
-      .then(res => { return res as Variables }))
-}
-
-
  
 export const msalConfig = {
   auth: {

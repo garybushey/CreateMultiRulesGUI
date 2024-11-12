@@ -1,4 +1,3 @@
-import React from "react";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../services/authConfig";
 import Button from "react-bootstrap/Button";

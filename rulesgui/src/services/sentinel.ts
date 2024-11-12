@@ -52,7 +52,7 @@ export async function createRuleFromTemplate(allRulesToCreate: any[]) {
     var body: string = "{";
     const ruleData = allRulesToCreate[i];
     //Load the information needed for the Metadata call
-    var packageId = ruleData.properties.packageId;
+    //var packageId = ruleData.properties.packageId;
     var version = ruleData.properties.version;
     var author = ruleData.properties.mainTemplate.resources[1].properties.author;
     var support = ruleData.properties.mainTemplate.resources[1].properties.support;
@@ -76,7 +76,7 @@ export async function createRuleFromTemplate(allRulesToCreate: any[]) {
     body += "}";
     var guid = generateGUID();
     var url = createRuleURL + "/" + guid + apiVersion;
-    var putResponse: any;
+    //var putResponse: any;
     var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
     var postResponse = await Promise.all([
       fetch(url, postOptions) //Load the Solutions Rule Templates
@@ -108,7 +108,7 @@ export async function createRuleFromTemplate(allRulesToCreate: any[]) {
 
     //var putResponse: any;
     var metaOptions = getPostAuthHeader(globalAccessToken, metaBody, "PUT");
-    var metaResponse = await Promise.all([
+    await Promise.all([
       fetch(metaURL, metaOptions) //Load the Solutions Rule Templates
         .then((response) => response.json())
         .catch((error) => console.log("Error" + error)),
@@ -119,22 +119,13 @@ export async function createRuleFromTemplate(allRulesToCreate: any[]) {
 //Create a new GUID
 function generateGUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    const r = Math.random() * 16 | 0
+    //eslint-disable-next-line no-mixed-operators
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
 
-type Variables = {
-  subscriptionID: string;
-  workspaceName: string;
-  resourceGroupName: string;
-  appClientID: string;
-}
-
- async function getVariables() {
-  const response = await fetch('/api/settings')
-  return await response.json();
-}
 
 //Make a call to all the Sentinel REST APIs, store the results in the appropriate
 //variables, and then make the call to add the location that the template came from
@@ -165,7 +156,7 @@ function isRuleTemplateInUse(solutionTemplates: any) {
   for (var index1: number = 0; index1 < solutionTemplates.length; index1++) {
     solutionTemplates[index1].inUse = "";
     //If there are any rules loaded...
-    if (solutionRules != undefined) {
+    if (solutionRules !== undefined) {
       //Iterate through all the rules that have already been created
       for (var index: number = 0; index < solutionRules.length; index++) {
         //Check to see if the rule has a rule template ID associated with it.

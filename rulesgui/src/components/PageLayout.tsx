@@ -1,10 +1,5 @@
-/*
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License.
- */
-
-import { useState, useEffect } from 'react';
-import { useIsAuthenticated, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, MsalProvider } from "@azure/msal-react";
+import { useState } from 'react';
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, MsalProvider } from "@azure/msal-react";
 import { IPublicClientApplication } from "@azure/msal-browser";
 import { SignInSignOutButton } from "./SignInSignOutButton";
 //import { SignInButton } from './SignInButton';
@@ -22,7 +17,7 @@ const useStyles = makeStyles({
     alignContent: "center",
     justifyContent: "flex-start",
     width: "100%",
-    backgroundColor: "blue",
+    backgroundColor: tokens.colorNeutralForeground2BrandPressed,
   },
   flexChild50Left: {
     alignSelf: "flex-start",
@@ -45,7 +40,7 @@ const useStyles = makeStyles({
   headerText: {
     paddingLeft: "10px",
     fontSize: "20px",
-    color: "white"
+    color: tokens.colorNeutralForegroundInverted
   }
 });
 
@@ -54,7 +49,6 @@ type AppProps = {
 };
 
 export function PageLayout({ pca }: AppProps) {
-  const isAuthenticated = useIsAuthenticated();
   const [isLoading, setIsLoading] = useState(false);
   const styles = useStyles();
 
@@ -100,7 +94,6 @@ export function PageLayout({ pca }: AppProps) {
           </div>
           <div className={styles.flexChild50Right}>
             <SignInSignOutButton />
-            {/* {isAuthenticated ? <SignOutButton /> : <SignInButton />} */}
           </div>
         </div>
         <br />

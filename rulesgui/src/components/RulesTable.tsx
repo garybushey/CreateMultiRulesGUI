@@ -12,9 +12,10 @@ import {
   Tooltip,
   Button,
   makeStyles,
-  shorthands
+  tokens,
+  mergeClasses
 } from "@fluentui/react-components";
-import { Info16Regular, Status12Filled } from "@fluentui/react-icons";
+import { Info16Regular, Dismiss24Regular, ChevronDoubleLeftRegular, ChevronDoubleRightRegular } from "@fluentui/react-icons";
 import { techniqueDescriptions } from "./techniques"
 import { createRuleFromTemplate } from "../services/sentinel";
 import { RulesDetails } from "./RulesDetails";
@@ -25,21 +26,77 @@ const useStyles = makeStyles({
   inUse: {
     backgroundColor: "#F3F2F1",
     color: "#605E5c",
-    ...shorthands.border("1px", "solid", "#605e5c"),
+    border: "1px solid #605e5c",
     fontSize: "10px",
     fontWeight: "bold"
   },
-  "colorSeverityClassHigh": {
+  colorSeverityClassHigh: {
     backgroundColor: "red"
   },
-  "colorSeverityClassMedium": {
+  colorSeverityClassMedium: {
     backgroundColor: "orange"
   },
-  "colorSeverityClassLow": {
+  colorSeverityClassLow: {
     backgroundColor: "yellow"
   },
-  "colorSeverityClassInformational": {
+  colorSeverityClassInformational: {
     backgroundColor: "white"
+  },
+  headerContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
+    width: "100%",
+    position: "relative"
+  },
+  flexChild97: {
+    flexgrow: "2",
+    alignSelf: "flex-start",
+    flexBasis: "auto",
+    justifyContent: "flex-start",
+    width: "97%",
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusXLarge
+  },
+  flexChild3: {
+    flexgrow: "2",
+    alignSelf: "flex-end",
+    flexBasis: "auto",
+    justifyContent: "flex-end",
+    width: "3%",
+    zIndex: 100,
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderLeft: "1px solid black",
+  },
+  flexChild30: {
+    flexgrow: "2",
+    alignSelf: "flex-end",
+    flexBasis: "auto",
+    justifyContent: "flex-end",
+    width: "30%",
+    zIndex: 100,
+    position: "absolute",
+    top: 0,
+    right: 0,
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderLeft: "1px solid black",
+  },
+  buttonHeader: {
+    display: "flex",
+    flexDirection: "row",
+    alignContent: "flex-end",
+    justifyContent: "flex-end",
+    width: "100%",
+    position: "relative"
+  },
+  alignRight:
+  {
+    justifyContent: "flex-end",
+
   }
 
 });
@@ -163,18 +220,24 @@ function translateRuleType(kind: string) {
 }
 
 export function RulesTable(props: any) {
-  const styles = useStyles();
   //An array of those items that have been selected.
   const [selectedRuleTemplates, setSelectedRuleTemplates] = useState([]);
   const [selectedRule, setSelectedRule] = useState();
-  const [sentinelData, setSentinelData] = useState(props.sentinelData);
+  const [sentinelData] = useState(props.sentinelData);
   const [ruleTemplates, setRuleTemplates] = useState<RuleTemplateItem[]>([]);
+  const [isDivMinimized, setIsDivMinimized] = useState(false);
+
+  const styles = useStyles();
+  const divClass = mergeClasses(
+    isDivMinimized == true && styles.flexChild3,
+    isDivMinimized == false && styles.flexChild30
+  );
 
   //Load the ruleTemplates array used to display the data
   // var ruleTemplates: RuleTemplateItem[] = [];
   const ruleTemplatesAllData: any[] = [];
 
-  //setSentinelData(props.sentinelData);
+
 
   useEffect(() => {
     var tmpRuleTemplates: RuleTemplateItem[] = [];
@@ -213,7 +276,7 @@ export function RulesTable(props: any) {
       });
     }
     setRuleTemplates(tmpRuleTemplates);
-  }, [selectedRuleTemplates]);
+  }, [selectedRuleTemplates, getSeverityColor, sentinelData]);
 
 
   //Get the color that represents the severity
@@ -237,9 +300,9 @@ export function RulesTable(props: any) {
     }
     return sentinelColorSeverityClass;
   }
+
   //Set the selected rules into a variable that can be passed to other calls
   function updateSelectedRuleTemplates(data: any) {
-    var test = "";
     setSelectedRuleTemplates(data.selectedItems);
     setSelectedRule(sentinelData[Math.max(...data.selectedItems)]);
   }
@@ -395,7 +458,7 @@ export function RulesTable(props: any) {
         return "In Use";
       },
       renderCell: (item) => {
-        return <TableCellLayout>{item.inUse.label != "" ? (<div className={styles.inUse}>&nbsp;&nbsp;IN USE&nbsp;&nbsp;</div>) : (" ")}</TableCellLayout>;
+        return <TableCellLayout>{item.inUse.label !== "" ? (<div className={styles.inUse}>&nbsp;&nbsp;IN USE&nbsp;&nbsp;</div>) : (" ")}</TableCellLayout>;
       },
     }),
     createTableColumn<RuleTemplateItem>({
@@ -507,12 +570,15 @@ export function RulesTable(props: any) {
     }
   };
 
+  function minMaxDetails() {
+    setIsDivMinimized(!isDivMinimized);
+  }
+
   //Create the datagrid and return it
   return (
     <>
-      <div className="sentinelOverview">
-        <div className="floatLeft">
-
+      <div className={styles.headerContainer}>
+        <div className={styles.flexChild97}>
           <Button {...props} onClick={createSelectedRules} appearance="primary" disabled={ruleTemplates.length === 0}>Create Rule(s)</Button>
           <DataGrid
             items={ruleTemplates}
@@ -544,19 +610,25 @@ export function RulesTable(props: any) {
             </DataGridBody>
           </DataGrid>
         </div>
-        {ruleTemplates.length === 0 ? (
-          <div>No rule templates available</div>
-        ) : (
-          <div key="selectedRule" className="floatRight">
-            {selectedRule ?
-              (<RulesDetails selectedRow={selectedRule} />
-              ) : (
-                <RulesDetails selectedRow="" />
-              )}
-          </div>
-        )}
 
-      </div>
+        <div className={divClass} key="selectedRule" >
+          <div className={styles.buttonHeader}>
+            <div className={styles.alignRight}>
+              {isDivMinimized ? (
+                <Button icon={<ChevronDoubleLeftRegular />} onClick={minMaxDetails} />
+              ) : (
+                <Button icon={<ChevronDoubleRightRegular />} onClick={minMaxDetails} />
+              )}
+
+            </div>
+          </div>
+          {isDivMinimized ? (
+            <RulesDetails selectedRow={undefined}  isMinimized={isDivMinimized}/>
+          ) : (
+            <RulesDetails selectedRow={selectedRule} isMinimized={isDivMinimized}/>
+          )}
+        </div>
+      </div >
     </>
   );
 };

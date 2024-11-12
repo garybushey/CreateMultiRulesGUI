@@ -10,12 +10,14 @@ import {
 
 
 const useStyles = makeStyles({
-  displayTable: { color: "black", ...shorthands.border('0px') },
-  displayRow: { ...shorthands.border('0px'), height: "40px" },
-  displayRuleName: { ...shorthands.border('0px'), height: "40px", fontWeight: "bold", fontSize: "18px", overflowY: ["clip"] },
-  displayCell: { ...shorthands.border('0px'), height: "10px !important", textAlign: "left", verticalAlign: "top" },
-  displayCellDescription: { ...shorthands.border('0px'), height: "20px", textAlign: "left", fontWeight: "bold" },
-  displayTextarea: { height: "243px", width: "472px", display: "flex", flexDirection: "column", fontSize: "13px" }
+  displayTable: { color: "black", border: '0px' },
+  displayRow: { border: '0px', height: "40px" },
+  displayRuleName: { border: '0px', height: "40px", fontWeight: "bold", fontSize: "18px", overflowY: ["clip"] },
+  displayCell: { border: '0px', height: "10px !important", textAlign: "left", verticalAlign: "top" },
+  displayCellDescription: { border: '0px', height: "20px", textAlign: "left", fontWeight: "bold" },
+  displayTextarea: { height: "243px", width: "472px", display: "flex", flexDirection: "column", fontSize: "13px" },
+  divHeight:
+    { height: "100vh" }
 });
 
 function generateTimeText(ruleFrequency: string) {
@@ -67,9 +69,9 @@ function generateEventGroupingText(eventGrouping: string) {
   return returnString;
 }
 
+type Props = { selectedRow: any, isMinimized: boolean }
 
-
-export function RulesDetails(props: any) {
+export function RulesDetails(props: Props) {
   const styles = useStyles();
 
   var ruleTemplate: any = props.selectedRow
@@ -85,9 +87,9 @@ export function RulesDetails(props: any) {
   var createIncidents: string = "";
   var alertGrouping: string = "";
   var version: string = "";
-  var requiredDataConnectors: requiredDataConnectorType[] = [];
+  //var requiredDataConnectors: requiredDataConnectorType[] = [];
 
-  if (ruleTemplate !== '') {
+  if (ruleTemplate !== undefined) {
     var tmpProperties = ruleTemplate.properties.mainTemplate.resources[0].properties;
     displayName = tmpProperties.displayName;
     description = tmpProperties.description;
@@ -103,29 +105,7 @@ export function RulesDetails(props: any) {
     createIncidents = "Enabled";
     alertGrouping = "Disabled";
     version = tmpProperties.version;
-    requiredDataConnectors = tmpProperties.requiredDataConnectors;
   }
-
-
-  type requiredDataConnectorType = {
-    connectorId: string;
-    dataTypes: string[];
-  }
-
-  const showDataSources = (requiredDataConnectors: requiredDataConnectorType[]) => {
-    if (requiredDataConnectors !== undefined) {
-      return requiredDataConnectors.map(dataConnector => <TableRow><TableCell className={styles.displayCell}>{dataConnector.connectorId}{showDataTables(dataConnector.dataTypes)}</TableCell></TableRow>)
-    }
-    else {
-      return <></>
-    }
-  }
-
-  const showDataTables = (dataTables: string[]) => {
-    return dataTables.map(table => <TableRow><TableCell>{table}</TableCell></TableRow>)
-  }
-
-
 
   //Create the datagrid and return it
   return (
@@ -143,19 +123,11 @@ export function RulesDetails(props: any) {
               <TableCell className={styles.displayCell}>{description}</TableCell>
             </TableRow>
             <TableRow className={styles.displayRow}>
-              <TableCell className={styles.displayCellDescription}>Data Sources</TableCell>
-            </TableRow>
-            <TableRow className={styles.displayRow}>
-              <TableCell className={styles.displayCell}>
-                {/* {showDataSources(requiredDataConnectors)} */}
-              </TableCell>
-            </TableRow>
-            <TableRow className={styles.displayRow}>
               <TableCell className={styles.displayCellDescription}>Rule Query</TableCell>
             </TableRow>
             <TableRow className={styles.displayRow}>
               <TableCell className={styles.displayCell}>
-                <Textarea value={ruleQuery} disabled size="large" resize="both" className={styles.displayTextarea} />
+                <Textarea value={ruleQuery} disabled size="large" className={styles.displayTextarea} />
               </TableCell>
             </TableRow>
             {ruleTemplate.kind !== "NRT" ? (
@@ -213,7 +185,13 @@ export function RulesDetails(props: any) {
           </TableBody>
         </Table>
       )
-        : (<div>Select a rule template to see details</div>)}
+        : (<div className={styles.divHeight}>
+          {props.isMinimized ? (
+            <div></div>
+          ) : (
+            <div>Select a rule to see its details</div>
+          )}
+        </div>)}
 
     </>
   );
