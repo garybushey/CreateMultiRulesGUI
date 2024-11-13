@@ -7,6 +7,7 @@ export const SignInSignOutButton = () => {
     const { inProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated();
 
+    //Depending on if the user is logged in or not, show either the login or logout button.
     if (isAuthenticated) {
         return <SignOutButton />;
     } else if (inProgress !== InteractionStatus.Startup && inProgress !== InteractionStatus.HandleRedirect) {

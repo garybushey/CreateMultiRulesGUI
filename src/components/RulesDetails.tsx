@@ -19,6 +19,7 @@ const useStyles = makeStyles({
     { height: "100vh" }
 });
 
+//Translate the internal time into something a bit more readable
 function generateTimeText(ruleFrequency: string) {
   var returnText: string = "";
   if (ruleFrequency !== undefined) {
@@ -53,6 +54,7 @@ function generateTimeText(ruleFrequency: string) {
   return returnText;
 }
 
+//Translate the rule threshold into something a bit more readable
 function generateRuleThreshold(operator: string, threshold: string) {
   var returnString: string = "Trigger alert if query returns more than ";
   returnString += threshold;
@@ -60,6 +62,7 @@ function generateRuleThreshold(operator: string, threshold: string) {
   return returnString
 }
 
+//Translate the event grouping into something a bit more readable
 function generateEventGroupingText(eventGrouping: string) {
   var returnString: string = "Group all events into a single alert";
   if (eventGrouping === "AlertPerResult") {
@@ -184,7 +187,10 @@ export function RulesDetails(props: Props) {
           </TableBody>
         </Table>
       )
-        : (<div className={styles.divHeight}>
+        : (
+  /*       If the panel is showing and no rule has been selected, show the message about selecting a rule,
+           otherwise don't show anything so that the text doesn't show up in a small width div*/
+        <div className={styles.divHeight}>
           {props.isMinimized ? (
             <div></div>
           ) : (

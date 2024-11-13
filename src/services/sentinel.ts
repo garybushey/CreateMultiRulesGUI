@@ -46,74 +46,69 @@ function getPostAuthHeader(accessToken: string, body: any, method: string) {
 }
 
 //Create a rule from the passed in rule templates.  Can create more than one rule at a time.
-export async function createRuleFromTemplate(allRulesToCreate: any[]) {
+export async function createRuleFromTemplate(ruleData: any) {
 
-  for (var i = 0; i < allRulesToCreate.length; i++) {
-    var body: string = "{";
-    const ruleData = allRulesToCreate[i];
-    //Load the information needed for the Metadata call
-    //var packageId = ruleData.properties.packageId;
-    var version = ruleData.properties.version;
-    var author = ruleData.properties.mainTemplate.resources[1].properties.author;
-    var support = ruleData.properties.mainTemplate.resources[1].properties.support;
-    var source = ruleData.properties.mainTemplate.resources[1].properties.source;
-    var type = ruleData.properties.mainTemplate.resources[0].kind;
+  var body: string = "{";
+  var version = ruleData.properties.version;
+  var author = ruleData.properties.mainTemplate.resources[1].properties.author;
+  var support = ruleData.properties.mainTemplate.resources[1].properties.support;
+  var source = ruleData.properties.mainTemplate.resources[1].properties.source;
+  var type = ruleData.properties.mainTemplate.resources[0].kind;
 
-    //Load the properties for the rule creation
-    var properties = ruleData.properties.mainTemplate.resources[0].properties;
-    //Enabled seems to be set to false for all the templates
-    properties.enabled = "true";
-    //These properties are needed so that the rule template knows it has been used
-    properties.alertRuleTemplateName = ruleData.properties.mainTemplate.resources[0].name;
-    properties.templateVersion = version;
+  //Load the properties for the rule creation
+  var properties = ruleData.properties.mainTemplate.resources[0].properties;
+  //Enabled seems to be set to false for all the templates
+  properties.enabled = "true";
+  //These properties are needed so that the rule template knows it has been used
+  properties.alertRuleTemplateName = ruleData.properties.mainTemplate.resources[0].name;
+  properties.templateVersion = version;
 
-    //Create the rule
-    body += '"kind": "' + type + '", ';
-    body += '"properties":';
-    //Need to use JSON.stringify on any javascript objects so that they can
-    //be used in the REST API
-    body += JSON.stringify(properties);
-    body += "}";
-    var guid = generateGUID();
-    var url = createRuleURL + "/" + guid + apiVersion;
-    //var putResponse: any;
-    var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
-    var postResponse = await Promise.all([
-      fetch(url, postOptions) //Load the Solutions Rule Templates
-        .then((response) => response.json())
-        .catch((error) => console.log("Error" + error)),
-    ]);
+  //Create the rule
+  body += '"kind": "' + type + '", ';
+  body += '"properties":';
+  //Need to use JSON.stringify on any javascript objects so that they can
+  //be used in the REST API
+  body += JSON.stringify(properties);
+  body += "}";
+  var guid = generateGUID();
+  var url = createRuleURL + "/" + guid + apiVersion;
+  //var putResponse: any;
+  var postOptions = getPostAuthHeader(globalAccessToken, body, "PUT");
+  var postResponse = await Promise.all([
+    fetch(url, postOptions) //Load the Solutions Rule Templates
+      .then((response) => response.json())
+      .catch((error) => console.log("Error" + error)),
+  ]);
 
-    //Now that the rule has been created, create the metadata entry so that the
-    //correct Source Name shows up.
-    var metaURL = metaRuleURL + postResponse[0].name;
-    var id = metaURL.substring(28);
-    //This uses a different API version than the Sentinel calls
-    metaURL += "?api-version=2022-01-01-preview";
-    var metaBody: string = "{";
-    metaBody += '"apiVersion":"2022-01-01-preview",';
-    metaBody += '"name":"analyticsrule-' + postResponse[0].name + '",';
-    metaBody +=
-      '"type":"Microsoft.OperationalInsights/workspaces/providers/metadata",';
-    metaBody += '"id":"' + id + '",';
-    metaBody += '"properties" :{';
-    metaBody += '"contentId":"' + postResponse[0].name + '",';
-    metaBody += '"parentId":"' + postResponse[0].id + '",';
-    metaBody += '"kind":"AnalyticsRule",';
-    metaBody += '"version":"' + version + '",';
-    metaBody += '"source":' + JSON.stringify(source) + ",";
-    metaBody += '"author":' + JSON.stringify(author) + ",";
-    metaBody += '"support":' + JSON.stringify(support) + "";
-    metaBody += "}";
+  //Now that the rule has been created, create the metadata entry so that the
+  //correct Source Name shows up.
+  var metaURL = metaRuleURL + postResponse[0].name;
+  var id = metaURL.substring(28);
+  //This uses a different API version than the Sentinel calls
+  metaURL += "?api-version=2022-01-01-preview";
+  var metaBody: string = "{";
+  metaBody += '"apiVersion":"2022-01-01-preview",';
+  metaBody += '"name":"analyticsrule-' + postResponse[0].name + '",';
+  metaBody +=
+    '"type":"Microsoft.OperationalInsights/workspaces/providers/metadata",';
+  metaBody += '"id":"' + id + '",';
+  metaBody += '"properties" :{';
+  metaBody += '"contentId":"' + postResponse[0].name + '",';
+  metaBody += '"parentId":"' + postResponse[0].id + '",';
+  metaBody += '"kind":"AnalyticsRule",';
+  metaBody += '"version":"' + version + '",';
+  metaBody += '"source":' + JSON.stringify(source) + ",";
+  metaBody += '"author":' + JSON.stringify(author) + ",";
+  metaBody += '"support":' + JSON.stringify(support) + "";
+  metaBody += "}";
 
-    //var putResponse: any;
-    var metaOptions = getPostAuthHeader(globalAccessToken, metaBody, "PUT");
-    await Promise.all([
-      fetch(metaURL, metaOptions) //Load the Solutions Rule Templates
-        .then((response) => response.json())
-        .catch((error) => console.log("Error" + error)),
-    ]);
-  }
+  //var putResponse: any;
+  var metaOptions = getPostAuthHeader(globalAccessToken, metaBody, "PUT");
+  await Promise.all([
+    fetch(metaURL, metaOptions) //Load the Solutions Rule Templates
+      .then((response) => response.json())
+      .catch((error) => console.log("Error" + error)),
+  ]);
 }
 
 //Create a new GUID
@@ -146,6 +141,7 @@ export async function getSentinelRulesandTemplates(accessToken: string) {
   ]);
 
   isRuleTemplateInUse(solutionTemplates);
+  // const formattedTemplates = formatTemplates(solutionTemplates);
   return solutionTemplates;
 }
 
@@ -154,7 +150,7 @@ function isRuleTemplateInUse(solutionTemplates: any) {
 
   //Iterate thorough all the rule templates
   for (var index1: number = 0; index1 < solutionTemplates.length; index1++) {
-    solutionTemplates[index1].inUse = "";
+    solutionTemplates[index1].inUse = " ";
     //If there are any rules loaded...
     if (solutionRules !== undefined) {
       //Iterate through all the rules that have already been created
@@ -173,3 +169,8 @@ function isRuleTemplateInUse(solutionTemplates: any) {
     }
   }
 }
+
+
+
+
+

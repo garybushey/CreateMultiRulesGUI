@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   DataGridBody,
   DataGridRow,
@@ -19,6 +19,7 @@ import { Info16Regular, ChevronDoubleLeftRegular, ChevronDoubleRightRegular } fr
 import { techniqueDescriptions } from "./techniques"
 import { createRuleFromTemplate } from "../services/sentinel";
 import { RulesDetails } from "./RulesDetails";
+import { RuleTemplateItem } from "../services/ruleTableTypes";
 
 
 const useStyles = makeStyles({
@@ -101,77 +102,8 @@ const useStyles = makeStyles({
 
 });
 
-type ID = {
-  label: string
-};
 
-type Severity = {
-  label: string;
-  icon: JSX.Element;
-};
-
-type InUse = {
-  label: string
-}
-
-type Name = {
-  label: string;
-};
-
-type RuleType = {
-  label: string;
-  icon: JSX.Element;
-};
-
-type DataSources = {
-  label: string;
-};
-
-type Tactics = {
-  label: string;
-  icon: JSX.Element[];
-};
-
-type Techniques = {
-  label: JSX.Element;
-};
-
-type SourceName = {
-  label: string;
-};
-
-type RequiredDataConnectors = {
-  label: string[];
-}
-
-type Version = {
-  label: string;
-}
-
-type SubTechniques = {
-  label: string;
-};
-
-
-//This is a list of all the fields that make up an individual item
-type RuleTemplateItem = {
-  severity: Severity;
-  status: string;
-  id: ID;
-  inUse: InUse;
-  name: Name;
-  ruleType: RuleType;
-  dataSources: DataSources;
-  tactics: Tactics;
-  techniques: Techniques;
-  sourceName: SourceName;
-  requiredDataConnectors: RequiredDataConnectors;
-  version: Version;
-  subTechniques: SubTechniques;
-
-};
-
-//Get the image that represents the rule types
+//Get the image that represents the rule types.  This is the embedded text that is used to generate the image
 function getRuleImage(kind: string) {
   var kindImage: JSX.Element = <strong />;
   switch (kind) {
@@ -222,61 +154,21 @@ function translateRuleType(kind: string) {
 export function RulesTable(props: any) {
   //An array of those items that have been selected.
   const [selectedRuleTemplates, setSelectedRuleTemplates] = useState([]);
+  //An individual rule
   const [selectedRule, setSelectedRule] = useState();
+  //All the rule templates available in the environment
   const [sentinelData] = useState(props.sentinelData);
+  //The rules formatted to display in the grid
   const [ruleTemplates, setRuleTemplates] = useState<RuleTemplateItem[]>([]);
-  const [isDivMinimized, setIsDivMinimized] = useState(false);
+  //Determines whether to show or hide the details pane
+  const [isDivMinimized, setIsDivMinimized] = useState(true);  //start off with the details pane hidden
 
   const styles = useStyles();
+  //This is used to show or minimized the details pane based on the isDivMinimized state.
   const divClass = mergeClasses(
     isDivMinimized === true && styles.flexChild3,
     isDivMinimized === false && styles.flexChild30
   );
-
-  //Load the ruleTemplates array used to display the data
-  // var ruleTemplates: RuleTemplateItem[] = [];
-  const ruleTemplatesAllData: any[] = [];
-
-
-
-  useEffect(() => {
-    var tmpRuleTemplates: RuleTemplateItem[] = [];
-    if (sentinelData != null) {
-      sentinelData.map((row: any, i: number) => {
-        var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
-        var thisRow: any = row.properties.mainTemplate.resources[0];
-        var thisSeverity: string = (thisProperties.severity === undefined ? "High" : thisProperties.severity);
-        var thisInUse = row.inUse;
-
-        if (
-          thisRow.kind === "Scheduled" ||
-          thisRow.kind === "MicrosoftSecurityIncidentCreation" ||
-          thisRow.kind === "NRT"
-        ) {
-          var item: RuleTemplateItem = {
-            id: { label: thisRow.name },
-            severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
-            status: "",
-            inUse: { label: thisInUse },
-            name: { label: thisProperties.displayName },
-            ruleType: { label: translateRuleType(thisRow.kind), icon: getRuleImage(thisRow.kind) },
-            dataSources: { label: row.properties.mainTemplate.resources[1].properties.source.name },
-            tactics: { label: "", icon: getTacticsImages(thisProperties.tactics) },
-            techniques: { label: loadTechniques(thisProperties.techniques) },
-            sourceName: { label: row.properties.mainTemplate.resources[1].properties.source.name },
-            requiredDataConnectors: { label: thisProperties.requiredDataConnectors },
-            version: { label: row.properties.version },
-            subTechniques: { label: thisProperties.subTechniques }
-          };
-          thisRow.properties.version = row.properties.version;
-          tmpRuleTemplates.push(item);
-          ruleTemplatesAllData.push(thisRow);
-        }
-
-      });
-    }
-    setRuleTemplates(tmpRuleTemplates);
-  }, [selectedRuleTemplates, getSeverityColor, sentinelData]);
 
 
   //Get the color that represents the severity
@@ -404,35 +296,37 @@ export function RulesTable(props: any) {
     return returnValue;
   }
 
-
+  //Iterate through all the rule templates that were selected and create the rule for each one
   function createSelectedRules() {
     var rulesToCreate: any[] = [];
     if (selectedRuleTemplates !== undefined) {
       selectedRuleTemplates.forEach((element) => {
         const thisData = sentinelData[element];
         rulesToCreate.push(thisData);
-        // setRuleTemplates((nds: RuleTemplateItem[]) => nds.map((node: RuleTemplateItem) => {
-        //   if (thisData.properties.contentId == node.id.label) {
-        //    // ...node, status.label="Creating Rule..."
-        //     //node.status.label = "Creating Rule..."
-        //     createRuleFromTemplate(thisData);
-        //   }
 
-        // }));
+        //Iterate thorugh the array that holds the rows for the rule templates grid and
+        //if it id value matches the content id of the selected rule, set its status
         setRuleTemplates(prevNodes =>
           prevNodes.map(node =>
             thisData.properties.contentId === node.id.label ? { ...node, status: "Creating Rule..." } : node
           )
         );
 
-        setRuleTemplates(prevNodes =>
-          prevNodes.map(node =>
-            thisData.properties.contentId === node.id.label ? { ...node, status: "Rule Created" } : node
-          )
-        );
+        //Pause 2 seconds between calls to 1) Give time for the "Creating Rule..." to show up and 
+        //2) to not make too many REST API calls in one time period.
+        //We will also set the status and the inUse (so that the in use message shows)
+        setTimeout(() => {
+          createRuleFromTemplate(thisData);
+          setRuleTemplates(prevNodes =>
+            prevNodes.map(node =>
+              thisData.properties.contentId === node.id.label ? { ...node, status: "Rule Created", inUse: "IN USE" } : node
+            )
+          );
+        }, 2000);
+
+
       });
     }
-    createRuleFromTemplate(rulesToCreate);
   }
 
   //Define all the individual display columns
@@ -452,13 +346,13 @@ export function RulesTable(props: any) {
     createTableColumn<RuleTemplateItem>({
       columnId: "inuse",
       compare: (a, b) => {
-        return a.inUse.label.localeCompare(b.inUse.label);
+        return a.inUse.localeCompare(b.inUse);
       },
       renderHeaderCell: () => {
         return "In Use";
       },
       renderCell: (item) => {
-        return <TableCellLayout>{item.inUse.label !== "" ? (<div className={styles.inUse}>&nbsp;&nbsp;IN USE&nbsp;&nbsp;</div>) : (" ")}</TableCellLayout>;
+        return <TableCellLayout>{item.inUse !== " " ? (<div className={styles.inUse}>&nbsp;&nbsp;IN USE&nbsp;&nbsp;</div>) : (" ")}</TableCellLayout>;
       },
     }),
     createTableColumn<RuleTemplateItem>({
@@ -574,6 +468,53 @@ export function RulesTable(props: any) {
     setIsDivMinimized(!isDivMinimized);
   }
 
+  function loadData() {
+    //Load the ruleTemplates array used to display the data
+    const ruleTemplatesAllData: any[] = [];
+    //Only call this if we have not setup the rule templates already.  No reason to keep repeating the calls
+    if (ruleTemplates.length === 0) {
+      var tmpRuleTemplates: RuleTemplateItem[] = [];
+      if (sentinelData != null) {
+        //eslint-disable-next-line array-callback-return
+        sentinelData.map((row: any, i: number) => {
+          var thisProperties: any = row.properties.mainTemplate.resources[0].properties;
+          var thisRow: any = row.properties.mainTemplate.resources[0];
+          var thisSeverity: string = (thisProperties.severity === undefined ? "High" : thisProperties.severity);
+          var thisInUse = row.inUse;
+
+          if (
+            thisRow.kind === "Scheduled" ||
+            thisRow.kind === "MicrosoftSecurityIncidentCreation" ||
+            thisRow.kind === "NRT"
+          ) {
+            var item: RuleTemplateItem = {
+              id: { label: thisRow.name },
+              severity: { label: thisSeverity, icon: getSeverityColor(thisSeverity) },
+              status: "",
+              inUse: thisInUse,
+              name: { label: thisProperties.displayName },
+              ruleType: { label: translateRuleType(thisRow.kind), icon: getRuleImage(thisRow.kind) },
+              dataSources: { label: row.properties.mainTemplate.resources[1].properties.source.name },
+              tactics: { label: "", icon: getTacticsImages(thisProperties.tactics) },
+              techniques: { label: loadTechniques(thisProperties.techniques) },
+              sourceName: { label: row.properties.mainTemplate.resources[1].properties.source.name },
+              requiredDataConnectors: { label: thisProperties.requiredDataConnectors },
+              version: { label: row.properties.version },
+              subTechniques: { label: thisProperties.subTechniques }
+            };
+            thisRow.properties.version = row.properties.version;
+            tmpRuleTemplates.push(item);
+            ruleTemplatesAllData.push(thisRow);
+          }
+
+        });
+      }
+      setRuleTemplates(tmpRuleTemplates);
+    }
+  }
+
+  loadData();  //Make the call to load the data
+
   //Create the datagrid and return it
   return (
     <>
@@ -622,10 +563,11 @@ export function RulesTable(props: any) {
 
             </div>
           </div>
+          {/* This is the side panel to show the rule details */}
           {isDivMinimized ? (
-            <RulesDetails selectedRow={undefined}  isMinimized={isDivMinimized}/>
+            <RulesDetails selectedRow={undefined} isMinimized={isDivMinimized} />
           ) : (
-            <RulesDetails selectedRow={selectedRule} isMinimized={isDivMinimized}/>
+            <RulesDetails selectedRow={selectedRule} isMinimized={isDivMinimized} />
           )}
         </div>
       </div >

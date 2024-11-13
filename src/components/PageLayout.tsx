@@ -1,12 +1,8 @@
-import { useState } from 'react';
-import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, MsalProvider } from "@azure/msal-react";
+import { AuthenticatedTemplate, UnauthenticatedTemplate, MsalProvider } from "@azure/msal-react";
 import { IPublicClientApplication } from "@azure/msal-browser";
 import { SignInSignOutButton } from "./SignInSignOutButton";
-//import { SignInButton } from './SignInButton';
-import { loginRequest } from '../services/authConfig';
-import { getSentinelRulesandTemplates } from '../services/sentinel';
-import { RulesTable } from './RulesTable';
-import { Button, makeStyles, tokens, Spinner } from "@fluentui/react-components";
+import { makeStyles, tokens, typographyStyles } from "@fluentui/react-components";
+import { ProfileContent } from './ProfileContent';
 
 const useStyles = makeStyles({
   headerContainer: {
@@ -23,7 +19,7 @@ const useStyles = makeStyles({
     alignSelf: "flex-start",
     flexBasis: "auto",
     justifyContent: "flex-start",
-    width: "48%",
+    width: "70%",
     height: "60px",
     alignContent: "center"
   },
@@ -32,57 +28,39 @@ const useStyles = makeStyles({
     alignSelf: "end",
     flexBasis: "auto",
     justifyContent: "flex-end",
-    width: "48%",
+    width: "30%",
   },
   loginButton: {
-    paddingRight: "10px"
+    paddingRight: "10px",
+    position: "relative",
+    top: "50%",
+    transform: "translateY(-50%)"
   },
   headerText: {
     paddingLeft: "10px",
     fontSize: "20px",
-    color: tokens.colorNeutralForegroundInverted
-  }
+    color: tokens.colorNeutralForegroundInverted,
+    text: typographyStyles.title3
+  },
+  mainText: {
+    paddingLeft: "10px",
+    fontSize: "20px",
+    text: typographyStyles.title2,
+    textAlign: "center"
+  },
+
 });
 
+//Set up the properties being passed into this component
 type AppProps = {
   pca: IPublicClientApplication;
 };
 
 export function PageLayout({ pca }: AppProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const styles = useStyles();
 
-  const ProfileContent = () => {
-    const { instance, accounts } = useMsal();
-    const [sentinelData, setSentinelData] = useState();
 
-    //Load all the rules 
-    function GetRules() {
-      //  acquires an access token which is then attached to a request for Sentinel REST API data
-      setIsLoading(true);
-      instance
-        .acquireTokenSilent({
-          ...loginRequest,
-          account: accounts[0],
-        })
-        .then((response) => {
-          getSentinelRulesandTemplates(response.accessToken).then((response) => setSentinelData(response));
-        });
-      setIsLoading(false);
-    }
-
-    return (
-      <>
-        {sentinelData ? (<RulesTable sentinelData={sentinelData} />) : (
-          <Button appearance="secondary" onClick={GetRules}>
-            Load Rule Templates
-          </Button>
-        )}
-
-      </>
-    );
-  };
-
+  //The MsalProvider below allows for the msal to be used in all the subcomponents easily
   return (
     <>
       <MsalProvider instance={pca}>
@@ -93,32 +71,28 @@ export function PageLayout({ pca }: AppProps) {
             </div>
           </div>
           <div className={styles.flexChild50Right}>
-            <SignInSignOutButton />
+            <div className={styles.loginButton}>
+              <SignInSignOutButton />
+            </div>
           </div>
         </div>
         <br />
         <br />
-        <h5>
-          <center>
-            Select one or more rule templates and then click on the "Create" button to create new rules
-          </center>
-        </h5>
+        <div className={styles.mainText}>
+          Select one or more rule templates and then click on the "Create" button to create new rules
+        </div>
         <br />
         <br />
         <center>
           <div className="App">
             <AuthenticatedTemplate>
-              {isLoading ? <Spinner></Spinner> : <div></div>}
               <ProfileContent />
             </AuthenticatedTemplate>
 
             <UnauthenticatedTemplate>
-              <h5>
-                <center>
-                  Please sign-in to get your rules.
-                </center>
-                test: {process.env.REACT_APP_SUBSCRIPTION_ID}
-              </h5>
+              <div className={styles.mainText}>
+                Please sign-in to get your rules.
+              </div>
             </UnauthenticatedTemplate>
           </div>
         </center>

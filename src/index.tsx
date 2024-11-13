@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { FluentProvider, teamsLightTheme } from "@fluentui/react-components";
+import { FluentProvider, webLightTheme } from "@fluentui/react-components";
 import {
   PublicClientApplication,
   EventType,
@@ -11,9 +11,7 @@ import {
 
 import { PageLayout } from './components/PageLayout';
 
-// Bootstrap components
-import "bootstrap/dist/css/bootstrap.min.css";
-
+//Setup the needed variables to login to Entra ID
 const msalConfig: Configuration = {
   auth: {
     clientId: process.env.REACT_APP_CLIENT_ID + "",
@@ -25,8 +23,11 @@ const msalConfig: Configuration = {
     allowNativeBroker: false // Disables WAM Broker
   }
 };
-
 const msalInstance = new PublicClientApplication(msalConfig);
+
+//Initialize the needed information for MSAL to work correctly and the continue to show the pages.
+//see https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react 
+//for examples and code 
 
 msalInstance.initialize().then(() => {
   // Account selection logic is app dependent. Adjust as needed for different use cases.
@@ -46,9 +47,11 @@ msalInstance.initialize().then(() => {
   const root = ReactDOM.createRoot(
     document.getElementById("root") as HTMLElement
   );
+
+  //FluentProvider will allow you to switch themes if you want to.
   root.render(
     <>
-      <FluentProvider theme={teamsLightTheme}>
+      <FluentProvider theme={webLightTheme}>
         <React.StrictMode>
           <PageLayout pca={msalInstance} />
         </React.StrictMode>
