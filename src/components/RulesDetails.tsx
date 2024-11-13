@@ -4,8 +4,7 @@ import {
   TableRow,
   Table,
   makeStyles,
-  Textarea,
-  shorthands
+  Textarea
 } from "@fluentui/react-components";
 
 

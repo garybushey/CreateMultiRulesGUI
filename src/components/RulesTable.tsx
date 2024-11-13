@@ -15,7 +15,7 @@ import {
   tokens,
   mergeClasses
 } from "@fluentui/react-components";
-import { Info16Regular, Dismiss24Regular, ChevronDoubleLeftRegular, ChevronDoubleRightRegular } from "@fluentui/react-icons";
+import { Info16Regular, ChevronDoubleLeftRegular, ChevronDoubleRightRegular } from "@fluentui/react-icons";
 import { techniqueDescriptions } from "./techniques"
 import { createRuleFromTemplate } from "../services/sentinel";
 import { RulesDetails } from "./RulesDetails";
@@ -229,8 +229,8 @@ export function RulesTable(props: any) {
 
   const styles = useStyles();
   const divClass = mergeClasses(
-    isDivMinimized == true && styles.flexChild3,
-    isDivMinimized == false && styles.flexChild30
+    isDivMinimized === true && styles.flexChild3,
+    isDivMinimized === false && styles.flexChild30
   );
 
   //Load the ruleTemplates array used to display the data
